@@ -1,0 +1,246 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  name: fb-0
+  labels:
+    app: fb-0
+spec:
+  ports:
+  - port: 46656
+    name: p2p
+  - port: 46657
+    name: rpc
+  - port: 80
+    name: http
+  type: LoadBalancer
+  loadBalancerIP: 35.189.177.229
+  selector:
+    statefulset.kubernetes.io/pod-name: fb-0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  name: fb-1
+  labels:
+    app: fb-1
+spec:
+  ports:
+  - port: 46656
+    name: p2p
+  - port: 46657
+    name: rpc
+  - port: 80
+    name: http
+  type: LoadBalancer
+  loadBalancerIP: 35.234.5.77
+  selector:
+    statefulset.kubernetes.io/pod-name: fb-1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  name: fb-2
+  labels:
+    app: fb-2
+spec:
+  ports:
+  - port: 46656
+    name: p2p
+  - port: 46657
+    name: rpc
+  - port: 80
+    name: http
+  type: LoadBalancer
+  loadBalancerIP: 35.201.187.27
+  selector:
+    statefulset.kubernetes.io/pod-name: fb-2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+  name: fb-3
+  labels:
+    app: fb-3
+spec:
+  ports:
+  - port: 46656
+    name: p2p
+  - port: 46657
+    name: rpc
+  - port: 80
+    name: http
+  type: LoadBalancer
+  loadBalancerIP: 35.229.225.81
+  selector:
+    statefulset.kubernetes.io/pod-name: fb-3
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fb-config
+data:
+  validators: "fb-0,fb-1,fb-2,fb-3"
+  ips: "35.189.177.229,35.234.5.77,35.201.187.27,35.229.225.81"
+  pub_validator_nginx.conf: |-
+    server {
+      listen 80 default_server;
+      listen [::]:80 default_server ipv6only=on;
+      location ~ \.json$ { root /usr/share/nginx/; }
+    }
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: fb-budget
+spec:
+  selector:
+    matchLabels:
+      app: fb
+  minAvailable: 2
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: fb
+spec:
+  selector:
+    matchLabels:
+      app: fb
+  serviceName: forboled
+  podManagementPolicy: Parallel
+  replicas: 4
+  template:
+    metadata:
+      labels:
+        app: fb
+    spec:
+      containers:
+      - name: fb
+        imagePullPolicy: IfNotPresent
+        image: asia.gcr.io/forbole/forbole:latest
+        ports:
+        - containerPort: 46656
+          name: p2p
+        - containerPort: 46657
+          name: rpc
+        env:
+        - name: VALIDATORS
+          valueFrom:
+            configMapKeyRef:
+              name: fb-config
+              key: validators
+        - name: IPS
+          valueFrom:
+            configMapKeyRef:
+              name: fb-config
+              key: ips
+        command:
+        - bash
+        - "-c"
+        - |
+          set -ex
+          # fill genesis file with validators
+          IFS=',' read -ra IPS_ARR <<< "$IPS"
+          IFS=',' read -ra VALS_ARR <<< "$VALIDATORS"
+          for i in "${!VALS_ARR[@]}"; do
+            v="${VALS_ARR[$i]}"
+            if [ $(hostname) != $v ]; then
+              # wait until validator generates priv/pub key pair
+              set +e
+              curl -s --fail http://"${IPS_ARR[$i]}"/$v.json > /dev/null
+              ERR=$?
+              while [ "$ERR" != 0 ]; do
+                sleep 5
+                curl -s --fail http://"${IPS_ARR[$i]}"/$v.json > /dev/null
+                ERR=$?
+              done
+              set -e
+              # add validator to genesis file along with its pub_key
+              curl -s http://"${IPS_ARR[$i]}"/$v.json > /forbole/forboled/config/gentx/$v.json
+            fi
+          done
+          forboled init --gen-txs --chain-id=forbole-0 --home=/forbole/forboled
+          forboled start --consensus.create_empty_blocks=false --home=/forbole/forboled
+          # fbcli rest-server --laddr=tcp://0.0.0.0:46655 --chain-id=forbole-0 --home=/forbole/fbcli
+          # forboled start --p2p.seeds="$seeds" --moniker=$(hostname) --proxy_app="unix:///socks/app.sock" --home=/forbole/forboled
+          # rm -f /socks/app.sock # remove old socket
+          # forbole start --address="unix:///socks/app.sock"
+        volumeMounts:
+        - name: fbdir
+          mountPath: /forbole
+        # - name: socksdir
+        #   mountPath: /socks
+
+      - name: pub-validator
+        imagePullPolicy: IfNotPresent
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        command:
+        - bash
+        - "-c"
+        - |
+          set -ex
+          # fixes 403 Permission Denied (open() "/forbole/pub_validator.json" failed (13: Permission denied))
+          # => we cannot serve from /forbole, so we copy the file
+          mkdir -p /usr/share/nginx
+          cp /forbole/forboled/config/gentx/$(hostname).json /usr/share/nginx/$(hostname).json
+          nginx -g "daemon off;"
+        volumeMounts:
+        - name: fbdir
+          mountPath: /forbole
+        - mountPath: /etc/nginx/conf.d/pub_validator.conf
+          name: fbconfigdir
+          subPath: pub_validator_nginx.conf
+
+      initContainers:
+      - name: fb-gen-validator
+        image: asia.gcr.io/forbole/forbole:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: IPS
+          valueFrom:
+            configMapKeyRef:
+              name: fb-config
+              key: ips
+        command:
+        - bash
+        - "-c"
+        - |
+          set -ex
+          if [ ! -f /forbole/forboled/config/priv_validator.json ]; then
+            # rm -rf /forbole/forboled /forbole/fbcli
+            IFS=',' read -ra IPS_ARR <<< "$IPS"
+            ordinal=${hostname##*-}
+            echo $ordinal
+            forboled init gen-tx --name=$(hostname) --ip="${IPS_ARR[$ordinal]}" --home=/forbole/forboled --home-client=/forbole/fbcli
+            mv /forbole/forboled/config/gentx/gentx-$(forboled show_node_id --home=/forbole/forboled).json /forbole/forboled/config/gentx/$(hostname).json
+          fi
+        volumeMounts:
+        - name: fbdir
+          mountPath: /forbole
+
+      volumes:
+      - name: fbconfigdir
+        configMap:
+          name: fb-config
+      # - name: socksdir
+      #   emptyDir: {}
+
+  volumeClaimTemplates:
+  - metadata:
+      name: fbdir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi

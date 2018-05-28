@@ -1,0 +1,147 @@
+PACKAGES=$(shell go list ./... | grep -v '/vendor/')
+PACKAGES_NOCLITEST=$(shell go list ./... | grep -v '/vendor/' | grep -v github.com/cosmos/cosmos-sdk/cmd/gaia/cli_test)
+COMMIT_HASH := $(shell git rev-parse --short HEAD)
+BUILD_FLAGS = -ldflags "-X github.com/cosmos/cosmos-sdk/version.GitCommit=${COMMIT_HASH}"
+
+all: check_tools get_vendor_deps install test_lint test
+
+########################################
+### CI
+
+ci: get_tools get_vendor_deps install test_cover test_lint test
+
+########################################
+### Build
+
+# This can be unified later, here for easy demos
+build:
+ifeq ($(OS),Windows_NT)
+	go build $(BUILD_FLAGS) -o build/forboled.exe ./cmd/forboled
+	go build $(BUILD_FLAGS) -o build/fbcli.exe ./cmd/fbcli
+else
+	go build $(BUILD_FLAGS) -o build/forboled ./cmd/forboled
+	go build $(BUILD_FLAGS) -o build/fbcli ./cmd/fbcli
+endif
+
+install:
+	go install $(BUILD_FLAGS) ./cmd/forboled
+	go install $(BUILD_FLAGS) ./cmd/fbcli
+
+create_kube_testnet:
+	@echo "==> Creating deployment"
+	@kubectl create -f app.yaml
+
+destroy_kube_testnet:
+	@echo "==> Destroying deployment"
+	@kubectl delete -f app.yaml
+	@kubectl delete pvc -l app=fb
+
+dist:
+	@bash publish/dist.sh
+	@bash publish/publish.sh
+
+########################################
+### Tools & dependencies
+
+check_tools:
+	cd tools && $(MAKE) check_tools
+
+update_tools:
+	cd tools && $(MAKE) update_tools
+
+get_tools:
+	cd tools && $(MAKE) get_tools
+
+get_vendor_deps:
+	@rm -rf vendor/
+	@echo "--> Running dep ensure"
+	@dep ensure -v
+
+draw_deps:
+	@# requires brew install graphviz or apt-get install graphviz
+	go get github.com/RobotsAndPencils/goviz
+	@goviz -i github.com/tendermint/tendermint/cmd/tendermint -d 3 | dot -Tpng -o dependency-graph.png
+
+
+########################################
+### Documentation
+
+godocs:
+	@echo "--> Wait a few seconds and visit http://localhost:6060/pkg/github.com/cosmos/cosmos-sdk/types"
+	godoc -http=:6060
+
+
+########################################
+### Testing
+
+test: test_unit
+
+test_cli: 
+	@go test -count 1 -p 1 `go list github.com/cosmos/cosmos-sdk/cmd/gaia/cli_test`
+
+test_unit:
+	@go test $(PACKAGES_NOCLITEST)
+
+test_cover:
+	@bash tests/test_cover.sh
+
+test_lint:
+	gometalinter --disable-all --enable='golint' --vendor ./...
+
+benchmark:
+	@go test -bench=. $(PACKAGES_NOCLITEST)
+
+
+########################################
+### Devdoc
+
+DEVDOC_SAVE = docker commit `docker ps -a -n 1 -q` devdoc:local
+
+devdoc_init:
+	docker run -it -v "$(CURDIR):/go/src/github.com/cosmos/cosmos-sdk" -w "/go/src/github.com/cosmos/cosmos-sdk" tendermint/devdoc echo
+	# TODO make this safer
+	$(call DEVDOC_SAVE)
+
+devdoc:
+	docker run -it -v "$(CURDIR):/go/src/github.com/cosmos/cosmos-sdk" -w "/go/src/github.com/cosmos/cosmos-sdk" devdoc:local bash
+
+devdoc_save:
+	# TODO make this safer
+	$(call DEVDOC_SAVE)
+
+devdoc_clean:
+	docker rmi -f $$(docker images -f "dangling=true" -q)
+
+devdoc_update:
+	docker pull tendermint/devdoc
+
+
+########################################
+### Remote validator nodes using terraform and ansible
+
+# Build linux binary
+build-linux:
+	GOOS=linux GOARCH=amd64 $(MAKE) build
+
+TESTNET_NAME?=remotenet
+SERVERS?=4
+BINARY=$(CURDIR)/build/forboled
+remotenet-start:
+	@if [ -z "$(DO_API_TOKEN)" ]; then echo "DO_API_TOKEN environment variable not set." ; false ; fi
+	@if ! [ -f $(HOME)/.ssh/id_rsa.pub ]; then ssh-keygen ; fi
+	@if [ -z "`file $(BINARY) | grep 'ELF 64-bit'`" ]; then echo "Please build a linux binary using 'make build-linux'." ; false ; fi
+	cd networks/remote/terraform && terraform init && terraform apply -var DO_API_TOKEN="$(DO_API_TOKEN)" -var SSH_PUBLIC_FILE="$(HOME)/.ssh/id_rsa.pub" -var SSH_PRIVATE_FILE="$(HOME)/.ssh/id_rsa" -var TESTNET_NAME="$(TESTNET_NAME)" -var SERVERS="$(SERVERS)"
+	cd networks/remote/ansible && ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory/digital_ocean.py -l "$(TESTNET_NAME)" -e BINARY=$(BINARY) -e TESTNET_NAME="$(TESTNET_NAME)" setup-validators.yml
+	cd networks/remote/ansible && ansible-playbook -i inventory/digital_ocean.py -l "$(TESTNET_NAME)" start.yml
+
+remotenet-stop:
+	@if [ -z "$(DO_API_TOKEN)" ]; then echo "DO_API_TOKEN environment variable not set." ; false ; fi
+	cd networks/remote/terraform && terraform destroy -var DO_API_TOKEN="$(DO_API_TOKEN)" -var SSH_PUBLIC_FILE="$(HOME)/.ssh/id_rsa.pub" -var SSH_PRIVATE_FILE="$(HOME)/.ssh/id_rsa"
+
+remotenet-status:
+	cd networks/remote/ansible && ansible-playbook -i inventory/digital_ocean.py -l "$(TESTNET_NAME)" status.yml
+
+# To avoid unintended conflicts with file names, always add to .PHONY
+# unless there is a reason not to.
+# https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
+.PHONY: build install create_kube_testnet destroy_kube_testnet dist check_tools get_tools get_vendor_deps draw_deps test test_cli test_unit test_cover test_lint benchmark devdoc_init devdoc devdoc_save devdoc_update remotenet-start remotenet-stop remotenet-status
