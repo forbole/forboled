@@ -58,7 +58,7 @@ spec:
   - port: 80
     name: http
   type: LoadBalancer
-  loadBalancerIP: 35.201.187.27
+  loadBalancerIP: 35.234.43.108
   selector:
     statefulset.kubernetes.io/pod-name: fb-2
 ---
@@ -79,7 +79,7 @@ spec:
   - port: 80
     name: http
   type: LoadBalancer
-  loadBalancerIP: 35.229.225.81
+  loadBalancerIP: 35.229.165.115
   selector:
     statefulset.kubernetes.io/pod-name: fb-3
 ---
@@ -89,7 +89,7 @@ metadata:
   name: fb-config
 data:
   validators: "fb-0,fb-1,fb-2,fb-3"
-  ips: "35.189.177.229,35.234.5.77,35.201.187.27,35.229.225.81"
+  ips: "35.189.177.229,35.234.5.77,35.234.43.108,35.229.165.115"
   pub_validator_nginx.conf: |-
     server {
       listen 80 default_server;
