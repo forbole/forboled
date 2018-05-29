@@ -2,8 +2,6 @@
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
   name: fb-0
   labels:
     app: fb-0
@@ -23,8 +21,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
   name: fb-1
   labels:
     app: fb-1
@@ -44,8 +40,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
   name: fb-2
   labels:
     app: fb-2
@@ -65,8 +59,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  annotations:
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
   name: fb-3
   labels:
     app: fb-3
@@ -153,7 +145,7 @@ spec:
           IFS=',' read -ra VALS_ARR <<< "$VALIDATORS"
           for i in "${!VALS_ARR[@]}"; do
             v="${VALS_ARR[$i]}"
-            if [ $(hostname) != $v ]; then
+            if [ $HOSTNAME != $v ]; then
               # wait until validator generates priv/pub key pair
               set +e
               curl -s --fail http://"${IPS_ARR[$i]}"/$v.json > /dev/null
@@ -171,7 +163,7 @@ spec:
           forboled init --gen-txs --chain-id=forbole-0 --home=/forbole/forboled
           forboled start --consensus.create_empty_blocks=false --home=/forbole/forboled
           # fbcli rest-server --laddr=tcp://0.0.0.0:46655 --chain-id=forbole-0 --home=/forbole/fbcli
-          # forboled start --p2p.seeds="$seeds" --moniker=$(hostname) --proxy_app="unix:///socks/app.sock" --home=/forbole/forboled
+          # forboled start --p2p.seeds="$seeds" --moniker=$HOSTNAME --proxy_app="unix:///socks/app.sock" --home=/forbole/forboled
           # rm -f /socks/app.sock # remove old socket
           # forbole start --address="unix:///socks/app.sock"
         volumeMounts:
@@ -193,7 +185,7 @@ spec:
           # fixes 403 Permission Denied (open() "/forbole/pub_validator.json" failed (13: Permission denied))
           # => we cannot serve from /forbole, so we copy the file
           mkdir -p /usr/share/nginx
-          cp /forbole/forboled/config/gentx/$(hostname).json /usr/share/nginx/$(hostname).json
+          cp /forbole/forboled/config/gentx/$HOSTNAME.json /usr/share/nginx/$HOSTNAME.json
           nginx -g "daemon off;"
         volumeMounts:
         - name: fbdir
@@ -218,12 +210,10 @@ spec:
         - |
           set -ex
           if [ ! -f /forbole/forboled/config/priv_validator.json ]; then
-            # rm -rf /forbole/forboled /forbole/fbcli
             IFS=',' read -ra IPS_ARR <<< "$IPS"
-            ordinal=${hostname##*-}
-            echo $ordinal
-            forboled init gen-tx --name=$(hostname) --ip="${IPS_ARR[$ordinal]}" --home=/forbole/forboled --home-client=/forbole/fbcli
-            mv /forbole/forboled/config/gentx/gentx-$(forboled show_node_id --home=/forbole/forboled).json /forbole/forboled/config/gentx/$(hostname).json
+            ordinal=${HOSTNAME##*-}
+            forboled init gen-tx --name=$HOSTNAME --ip="${IPS_ARR[$ordinal]}" --home=/forbole/forboled --home-client=/forbole/fbcli
+            mv /forbole/forboled/config/gentx/gentx-$(forboled show_node_id --home=/forbole/forboled).json /forbole/forboled/config/gentx/$HOSTNAME.json
           fi
         volumeMounts:
         - name: fbdir
