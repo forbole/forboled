@@ -12,8 +12,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
-	authcmd "github.com/cosmos/cosmos-sdk/x/auth/client/cli"
 
+	"github.com/forbole/forboled/types"
 	"github.com/forbole/forboled/x/contrib"
 	"github.com/forbole/forboled/x/contrib/client"
 )
@@ -34,7 +34,7 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 		Use:   "contrib",
 		Short: "Create and sign a contrib tx",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := context.NewCoreContextFromViper().WithDecoder(authcmd.GetAccountDecoder(cdc))
+			ctx := context.NewCoreContextFromViper().WithAccountStore("repute").WithDecoder(types.GetReputeAccountDecoder(cdc))
 
 			// get the from address
 			from, err := ctx.GetFromAddress()
