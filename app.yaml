@@ -140,27 +140,29 @@ spec:
         - "-c"
         - |
           set -ex
-          # fill genesis file with validators
-          IFS=',' read -ra IPS_ARR <<< "$IPS"
-          IFS=',' read -ra VALS_ARR <<< "$VALIDATORS"
-          for i in "${!VALS_ARR[@]}"; do
-            v="${VALS_ARR[$i]}"
-            if [ $HOSTNAME != $v ]; then
-              # wait until validator generates priv/pub key pair
-              set +e
-              curl -s --fail http://"${IPS_ARR[$i]}"/$v.json > /dev/null
-              ERR=$?
-              while [ "$ERR" != 0 ]; do
-                sleep 5
+          if [ ! -f /forbole/forboled/config/genesis.json ]; then
+            # fill genesis file with validators
+            IFS=',' read -ra IPS_ARR <<< "$IPS"
+            IFS=',' read -ra VALS_ARR <<< "$VALIDATORS"
+            for i in "${!VALS_ARR[@]}"; do
+              v="${VALS_ARR[$i]}"
+              if [ $HOSTNAME != $v ]; then
+                # wait until validator generates priv/pub key pair
+                set +e
                 curl -s --fail http://"${IPS_ARR[$i]}"/$v.json > /dev/null
                 ERR=$?
-              done
-              set -e
-              # add validator to genesis file along with its pub_key
-              curl -s http://"${IPS_ARR[$i]}"/$v.json > /forbole/forboled/config/gentx/$v.json
-            fi
-          done
-          forboled init --gen-txs --chain-id=forbole-0 --home=/forbole/forboled
+                while [ "$ERR" != 0 ]; do
+                  sleep 5
+                  curl -s --fail http://"${IPS_ARR[$i]}"/$v.json > /dev/null
+                  ERR=$?
+                done
+                set -e
+                # add validator to genesis file along with its pub_key
+                curl -s http://"${IPS_ARR[$i]}"/$v.json > /forbole/forboled/config/gentx/$v.json
+              fi
+            done
+            forboled init --gen-txs --chain-id=forbole-0 --home=/forbole/forboled
+          fi          
           forboled start --consensus.create_empty_blocks=false --home=/forbole/forboled
           # fbcli rest-server --laddr=tcp://0.0.0.0:46655 --chain-id=forbole-0 --home=/forbole/fbcli
           # forboled start --p2p.seeds="$seeds" --moniker=$HOSTNAME --proxy_app="unix:///socks/app.sock" --home=/forbole/forboled
