@@ -11,7 +11,9 @@ import (
 	"github.com/tendermint/tmlibs/log"
 
 	"github.com/cosmos/cosmos-sdk/server"
+	version2 "github.com/cosmos/cosmos-sdk/version"
 	"github.com/forbole/forboled/app"
+	version "github.com/forbole/forboled/version"
 )
 
 func main() {
@@ -27,6 +29,8 @@ func main() {
 		server.ConstructAppCreator(newApp, "forbole"),
 		server.ConstructAppExporter(exportAppState, "forbole"))
 
+	rootCmd.RemoveCommand(version2.VersionCmd)
+	rootCmd.AddCommand(version.VersionCmd)
 	// prepare and add flags
 	executor := cli.PrepareBaseCmd(rootCmd, "FB", app.DefaultNodeHome)
 	executor.Execute()
