@@ -69,7 +69,7 @@ func main() {
 			stakecmd.GetCmdEditValidator(cdc),
 			stakecmd.GetCmdDelegate(cdc),
 			stakecmd.GetCmdUnbond(cdc),
-			// ctbcmd.ContribTxCmd(cdc),
+			ctbcmd.ContribTxCmd(cdc),
 		)...)
 
 	// add proxy, version and key info
