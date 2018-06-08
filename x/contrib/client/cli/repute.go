@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 
@@ -42,11 +41,10 @@ func (c commander) getReputeCmd(cmd *cobra.Command, args []string) error {
 
 	// find the key to look up the account
 	addr := args[0]
-	bz, err := hex.DecodeString(addr)
+	key, err := sdk.GetAccAddressBech32(addr)
 	if err != nil {
 		return err
 	}
-	key := sdk.Address(bz)
 
 	ctx := context.NewCoreContextFromViper()
 

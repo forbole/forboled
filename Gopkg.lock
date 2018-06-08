@@ -47,8 +47,10 @@
     "x/ibc/client/cli",
     "x/ibc/client/rest",
     "x/slashing",
+    "x/slashing/client/cli",
     "x/stake",
-    "x/stake/client/cli"
+    "x/stake/client/cli",
+    "x/stake/client/rest"
   ]
   revision = "af15f89531600b89f807399420b5ede83833efe5"
   version = "v0.18.0-rc0"
@@ -497,6 +499,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8c2f6adf1e805ee296b31d29190dbe33246b3625256b0cafa21bfbbf31ee4704"
+  inputs-digest = "3af6554fdf31cdcf1c6403a2925c2f6b2de9f02e684830cb94b4f837806a1399"
   solver-name = "gps-cdcl"
   solver-version = 1

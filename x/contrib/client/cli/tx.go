@@ -63,11 +63,14 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 
 				// parse destination address
 				dest := viper.GetString(flagTo)
-				bz, err := hex.DecodeString(dest)
+				// bz, err := hex.DecodeString(dest)
+				// if err != nil {
+				// 	return err
+				// }
+				to, err := sdk.GetAccAddressBech32(dest)
 				if err != nil {
 					return err
 				}
-				to := sdk.Address(bz)
 
 				switch ctbType {
 				case "Invite":

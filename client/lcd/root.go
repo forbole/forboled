@@ -22,6 +22,7 @@ import (
 	auth "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	bank "github.com/cosmos/cosmos-sdk/x/bank/client/rest"
 	ibc "github.com/cosmos/cosmos-sdk/x/ibc/client/rest"
+	stake "github.com/cosmos/cosmos-sdk/x/stake/client/rest"
 	ctb "github.com/forbole/forboled/x/contrib/client/rest"
 )
 
@@ -56,6 +57,7 @@ func startRESTServerFn(cdc *wire.Codec) func(cmd *cobra.Command, args []string) 
 		if err != nil {
 			return err
 		}
+		logger.Info("REST server started")
 
 		// Wait forever and cleanup
 		cmn.TrapSignal(func() {
@@ -85,5 +87,6 @@ func createHandler(cdc *wire.Codec) http.Handler {
 	bank.RegisterRoutes(ctx, r, cdc, kb)
 	ibc.RegisterRoutes(ctx, r, cdc, kb)
 	ctb.RegisterRoutes(ctx, r, cdc, kb)
+	stake.RegisterRoutes(ctx, r, cdc, kb)
 	return r
 }
