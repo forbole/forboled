@@ -20,6 +20,7 @@ import (
 
 // State to Unmarshal
 type GenesisState struct {
+	// cosmos 0.18.0rc it's []*GenesisAccount
 	Accounts  []GenesisAccount   `json:"accounts"`
 	Admins    []GenesisAdmin     `json:"admins"`
 	StakeData stake.GenesisState `json:"stake"`
@@ -103,7 +104,7 @@ func ForboleAppInit() server.AppInit {
 		FlagsAppGenState: fsAppGenState,
 		FlagsAppGenTx:    fsAppGenTx,
 		AppGenTx:         ForboleAppGenTx,
-		AppGenState:      ForboleAppGenState,
+		AppGenState:      ForboleAppGenStateJSON,
 	}
 }
 
@@ -123,10 +124,51 @@ func ForboleAppGenTx(cdc *wire.Codec, pk crypto.PubKey) (
 	clientRoot := viper.GetString(flagClientHome)
 	overwrite := viper.GetBool(flagOWK)
 	name := viper.GetString(flagName)
+	if name == "" {
+		return nil, nil, tmtypes.GenesisValidator{}, errors.New("Must specify --name (validator moniker)")
+	}
+
 	addr, secret, err = server.GenerateSaveCoinKey(clientRoot, name, "1234567890", overwrite)
 	if err != nil {
 		return
 	}
+	mm := map[string]string{"secret": secret}
+	var bz []byte
+	bz, err = cdc.MarshalJSON(mm)
+	if err != nil {
+		return
+	}
+	cliPrint = json.RawMessage(bz)
+	return ForboleAppGenTxNF(cdc, pk, addr, name, overwrite)
+
+	// var bz []byte
+	// forboleGenTx := ForboleGenTx{
+	// 	Name:    name,
+	// 	Address: addr,
+	// 	PubKey:  pk,
+	// }
+	// bz, err = wire.MarshalJSONIndent(cdc, forboleGenTx)
+	// if err != nil {
+	// 	return
+	// }
+	// appGenTx = json.RawMessage(bz)
+
+	// mm := map[string]string{"secret": secret}
+	// bz, err = cdc.MarshalJSON(mm)
+	// if err != nil {
+	// 	return
+	// }
+	// cliPrint = json.RawMessage(bz)
+
+	// validator = tmtypes.GenesisValidator{
+	// 	PubKey: pk,
+	// 	Power:  freeFermionVal,
+	// }
+	// return
+}
+
+func ForboleAppGenTxNF(cdc *wire.Codec, pk crypto.PubKey, addr sdk.Address, name string, overwrite bool) (
+	appGenTx, cliPrint json.RawMessage, validator tmtypes.GenesisValidator, err error) {
 
 	var bz []byte
 	forboleGenTx := ForboleGenTx{
@@ -140,13 +182,6 @@ func ForboleAppGenTx(cdc *wire.Codec, pk crypto.PubKey) (
 	}
 	appGenTx = json.RawMessage(bz)
 
-	mm := map[string]string{"secret": secret}
-	bz, err = cdc.MarshalJSON(mm)
-	if err != nil {
-		return
-	}
-	cliPrint = json.RawMessage(bz)
-
 	validator = tmtypes.GenesisValidator{
 		PubKey: pk,
 		Power:  freeFermionVal,
@@ -156,7 +191,7 @@ func ForboleAppGenTx(cdc *wire.Codec, pk crypto.PubKey) (
 
 // Create the core parameters for genesis initialization for forbole
 // note that the pubkey input is this machines pubkey
-func ForboleAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (appState json.RawMessage, err error) {
+func ForboleAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (genesisState GenesisState, err error) {
 
 	if len(appGenTxs) == 0 {
 		err = errors.New("must provide at least genesis transaction")
@@ -203,10 +238,22 @@ func ForboleAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (appState 
 	}
 
 	// create the final app state
-	genesisState := GenesisState{
+	genesisState = GenesisState{
 		Accounts:  genaccs,
 		Admins:    admins,
 		StakeData: stakeData,
+	}
+	// appState, err = wire.MarshalJSONIndent(cdc, genesisState)
+	return
+}
+
+// ForboleAppGenState but with JSON
+func ForboleAppGenStateJSON(cdc *wire.Codec, appGenTxs []json.RawMessage) (appState json.RawMessage, err error) {
+
+	// create the final app state
+	genesisState, err := ForboleAppGenState(cdc, appGenTxs)
+	if err != nil {
+		return nil, err
 	}
 	appState, err = wire.MarshalJSONIndent(cdc, genesisState)
 	return

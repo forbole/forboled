@@ -63,11 +63,13 @@ func main() {
 			bankcmd.SendTxCmd(cdc),
 			ibccmd.IBCTransferCmd(cdc),
 			ibccmd.IBCRelayCmd(cdc),
-			stakecmd.GetCmdDeclareCandidacy(cdc),
-			stakecmd.GetCmdEditCandidacy(cdc),
+			// stakecmd.GetCmdDeclareCandidacy(cdc),
+			// stakecmd.GetCmdEditCandidacy(cdc),
+			stakecmd.GetCmdCreateValidator(cdc),
+			stakecmd.GetCmdEditValidator(cdc),
 			stakecmd.GetCmdDelegate(cdc),
 			stakecmd.GetCmdUnbond(cdc),
-			ctbcmd.ContribTxCmd(cdc),
+			// ctbcmd.ContribTxCmd(cdc),
 		)...)
 
 	// add proxy, version and key info

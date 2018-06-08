@@ -50,7 +50,7 @@ type BaseApp struct {
 	// must be set
 	txDecoder sdk.TxDecoder // unmarshal []byte into sdk.Tx
 	// anteHandler sdk.AnteHandler // ante handler for fee and auth
-	anteHandlers []sdk.AnteHandler // ante handler for fee and auth
+	anteHandler sdk.AnteHandler // ante handler for fee and auth
 
 	// may be nil
 	initChainer      sdk.InitChainer  // initialize state with validators and state blob
@@ -66,9 +66,10 @@ type BaseApp struct {
 	// See methods setCheckState and setDeliverState.
 	// .valUpdates accumulate in DeliverTx and are reset in BeginBlock.
 	// QUESTION: should we put valUpdates in the deliverState.ctx?
-	checkState   *state           // for CheckTx
-	deliverState *state           // for DeliverTx
-	valUpdates   []abci.Validator // cached validator changes from DeliverTx
+	checkState       *state                  // for CheckTx
+	deliverState     *state                  // for DeliverTx
+	valUpdates       []abci.Validator        // cached validator changes from DeliverTx
+	signedValidators []abci.SigningValidator // absent validators from begin block
 }
 
 var _ abci.Application = (*BaseApp)(nil)
@@ -153,12 +154,8 @@ func (app *BaseApp) SetBeginBlocker(beginBlocker sdk.BeginBlocker) {
 func (app *BaseApp) SetEndBlocker(endBlocker sdk.EndBlocker) {
 	app.endBlocker = endBlocker
 }
-
-// func (app *BaseApp) SetAnteHandler(ah sdk.AnteHandler) {
-// 	app.anteHandler = ah
-// }
-func (app *BaseApp) SetAnteHandlers(ahs ...sdk.AnteHandler) {
-	app.anteHandlers = ahs
+func (app *BaseApp) SetAnteHandler(ah sdk.AnteHandler) {
+	app.anteHandler = ah
 }
 func (app *BaseApp) SetAddrPeerFilter(pf sdk.PeerFilter) {
 	app.addrPeerFilter = pf
@@ -498,6 +495,7 @@ func (app *BaseApp) runTx(mode runTxMode, txBytes []byte, tx sdk.Tx) (result sdk
 		ctx = app.checkState.ctx.WithTxBytes(txBytes)
 	} else {
 		ctx = app.deliverState.ctx.WithTxBytes(txBytes)
+		ctx = ctx.WithSigningValidators(app.signedValidators)
 	}
 
 	// Simulate a DeliverTx for gas calculation
@@ -505,24 +503,8 @@ func (app *BaseApp) runTx(mode runTxMode, txBytes []byte, tx sdk.Tx) (result sdk
 		ctx = ctx.WithIsCheckTx(false)
 	}
 
-	// Run the ante handler.
-	// if app.anteHandler != nil {
-	// 	newCtx, result, abort := app.anteHandler(ctx, tx)
-	// 	if abort {
-	// 		return result
-	// 	}
-	// 	if !newCtx.IsZero() {
-	// 		ctx = newCtx
-	// 	}
-	// }
-	if app.anteHandlers != nil {
-		var anteHandler sdk.AnteHandler
-		if msg.Type() == "contrib" {
-			anteHandler = app.anteHandlers[1]
-		} else {
-			anteHandler = app.anteHandlers[0]
-		}
-		newCtx, result, abort := anteHandler(ctx, tx)
+	if app.anteHandler != nil {
+		newCtx, result, abort := app.anteHandler(ctx, tx)
 		if abort {
 			return result
 		}
