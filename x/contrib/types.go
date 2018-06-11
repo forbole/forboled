@@ -166,6 +166,15 @@ func (ctb Recommend) NewStatus() Status {
 	return &RecommendStatus{BaseStatus: BaseStatus{Score: 1, Contributor: ctb.Contributor, Time: ctb.Time}, Recipient: ctb.Recipient}
 }
 
+type Post struct {
+	BaseContrib2
+	Content []byte `json:"content"`
+}
+
+func (ctb Post) NewStatus() Status {
+	return &PostStatus{BaseStatus: BaseStatus{Score: 1, Contributor: ctb.Contributor, Time: ctb.Time}, Recipient: ctb.Recipient}
+}
+
 type BaseContrib3 struct {
 	BaseContrib
 	Recipient sdk.Address `json:"recipient"`
@@ -214,15 +223,6 @@ type Vote struct {
 	BaseContrib3
 	Content []byte `json: "content"`
 }
-
-// type Post struct {
-// 	BaseContrib2
-// 	Content []byte `json:"content"`
-// }
-
-// func (ctb Post) NewStatus() Status {
-// 	return &PostStatus{BaseStatus: BaseStatus{Score: 1, Contributor: ctb.Contributor, Time: ctb.Time}, Recipient: ctb.Recipient}
-// }
 
 // Status - contrib status
 type Status interface {
@@ -303,7 +303,8 @@ func (status *InviteStatus) Update(ctb Contrib) sdk.Error {
 
 type RecommendStatus BaseStatus2
 
-// type PostStatus BaseStatus2
+type PostStatus BaseStatus2
+
 //update() will be using the BaseStatus2's update()
 
 type BaseStatus3 struct {

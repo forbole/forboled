@@ -21,6 +21,6 @@ func RegisterWire(cdc *wire.Codec) {
 	cdc.RegisterConcrete(&VoteStatus{}, "contrib/VoteStatus", nil)
 
 	// Post
-	// cdc.RegisterConcrete(&Post{}, "contrib/Post", nil)
-	// cdc.RegisterConcrete(&PostStatus{}, "contrib/PostStatus", nil)
+	cdc.RegisterConcrete(&Post{}, "contrib/Post", nil)
+	cdc.RegisterConcrete(&PostStatus{}, "contrib/PostStatus", nil)
 }

@@ -55,7 +55,7 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 			ctbType := viper.GetString(flagType)
 			var ctb contrib.Contrib
 			switch ctbType {
-			case "Invite", "Recommend": // put "Post" here later
+			case "Invite", "Recommend", "Post":
 				ctbContent, err := hex.DecodeString(viper.GetString(flagContent))
 				if err != nil {
 					return err
@@ -73,6 +73,8 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 					ctb = contrib.Invite{contrib.BaseContrib2{contrib.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
 				case "Recommend":
 					ctb = contrib.Recommend{contrib.BaseContrib2{contrib.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
+				case "Post":
+					ctb = contrib.Post{contrib.BaseContrib2{contrib.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
 				}
 			case "Vote":
 				// get content
