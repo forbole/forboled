@@ -23,8 +23,8 @@ const (
 	flagKey     = "key"
 	flagType    = "type"
 	flagContent = "content"
-	// flagVotes = "votes"
-	flagTime = "time"
+	flagVotes   = "votes"
+	flagTime    = "time"
 	// flagRole = "role"
 )
 
@@ -55,7 +55,7 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 			ctbType := viper.GetString(flagType)
 			var ctb contrib.Contrib
 			switch ctbType {
-			case "Invite", "Recommend":
+			case "Invite", "Recommend": // put "Post" here later
 				ctbContent, err := hex.DecodeString(viper.GetString(flagContent))
 				if err != nil {
 					return err
@@ -63,10 +63,6 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 
 				// parse destination address
 				dest := viper.GetString(flagTo)
-				// bz, err := hex.DecodeString(dest)
-				// if err != nil {
-				// 	return err
-				// }
 				to, err := sdk.GetAccAddressBech32(dest)
 				if err != nil {
 					return err
@@ -78,6 +74,33 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 				case "Recommend":
 					ctb = contrib.Recommend{contrib.BaseContrib2{contrib.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
 				}
+			case "Vote":
+				// get content
+				ctbContent, err := hex.DecodeString(viper.GetString(flagContent))
+				if err != nil {
+					return err
+				}
+
+				// parse destination address
+				dest := viper.GetString(flagTo)
+				to, err := sdk.GetAccAddressBech32(dest)
+				if err != nil {
+					return err
+				}
+
+				// get the vote flag to see what kind of vote
+				ctbVote := viper.GetString(flagVotes)
+				fmt.Print("pass votes ")
+				fmt.Println(ctbVote)
+				if ctbVote == "Upvote" {
+					ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{ctbKey, from, ctbTime}, to, 1}, ctbContent}
+				} else if ctbVote == "Downvote" {
+					ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{ctbKey, from, ctbTime}, to, -1}, ctbContent}
+				} else {
+					return errors.New("Invalid Vote Type")
+				}
+				// case "Cancel": // need cancel here? or do it in types.go instead when update recive?
+				// 	ctb = contrib.Vote{contrib.BaseContrib{ctbKey, from, ctbTime}, 0}
 			default:
 				return errors.New("Invalid Contrib Type")
 			}
@@ -103,7 +126,7 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 	cmd.Flags().String(flagKey, "", "Key of the contrib")
 	cmd.Flags().String(flagType, "", "Type of the contrib")
 	cmd.Flags().String(flagContent, "", "Content of the contrib")
-	// cmd.Flags().String(flagVotes, "", "Votes of the contrib")
+	cmd.Flags().String(flagVotes, "", "Votes of the contrib")
 	cmd.Flags().String(flagTime, "", "Time of the contrib")
 	return cmd
 }

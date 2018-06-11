@@ -15,4 +15,12 @@ func RegisterWire(cdc *wire.Codec) {
 	cdc.RegisterConcrete(&InviteStatus{}, "contrib/InviteStatus", nil)
 	cdc.RegisterConcrete(&RecommendStatus{}, "contrib/RecommendStatus", nil)
 	cdc.RegisterConcrete(MsgContrib{}, "forbole/ContribMsg", nil)
+
+	// Vote
+	cdc.RegisterConcrete(&Vote{}, "contrib/Vote", nil)
+	cdc.RegisterConcrete(&VoteStatus{}, "contrib/VoteStatus", nil)
+
+	// Post
+	// cdc.RegisterConcrete(&Post{}, "contrib/Post", nil)
+	// cdc.RegisterConcrete(&PostStatus{}, "contrib/PostStatus", nil)
 }
