@@ -24,7 +24,7 @@ func registerQueryRoutes(ctx context.CoreContext, r *mux.Router, cdc *wire.Codec
 		contribHandlerFn(ctx, "contrib", cdc),
 	).Methods("GET")
 	r.HandleFunc(
-		"/repute/{address}",
+		"/reputeaccount/{address}",
 		reputeAccountHandlerFn(ctx, "repute", authcmd.GetAccountDecoder(cdc), cdc),
 	).Methods("GET")
 }
