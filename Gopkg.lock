@@ -22,14 +22,11 @@
 [[projects]]
   name = "github.com/cosmos/cosmos-sdk"
   packages = [
-    "baseapp",
     "client",
     "client/context",
     "client/keys",
     "client/rpc",
     "client/tx",
-    "examples/basecoin/app",
-    "examples/basecoin/types",
     "server",
     "store",
     "tests",
@@ -52,8 +49,8 @@
     "x/stake/client/cli",
     "x/stake/client/rest"
   ]
-  revision = "96451b55fff107511a65bf930b81fb12bed133a1"
-  version = "v0.18.0"
+  revision = "c6711810a86f09457481a8dadae899681a9d77ab"
+  version = "v0.19.0"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -500,6 +497,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d9dc17b60685e47b72b850b86984db97cdcd17a3d1c77e53c55e43ca943b75fa"
+  inputs-digest = "2dbc264fb088c65ff97a2ff4da6748328494110c5f1470119c353202e30e53c1"
   solver-name = "gps-cdcl"
   solver-version = 1
