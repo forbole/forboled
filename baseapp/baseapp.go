@@ -48,8 +48,7 @@ type BaseApp struct {
 	codespacer *sdk.Codespacer      // handle module codespacing
 
 	// must be set
-	txDecoder sdk.TxDecoder // unmarshal []byte into sdk.Tx
-	// anteHandler sdk.AnteHandler // ante handler for fee and auth
+	txDecoder   sdk.TxDecoder   // unmarshal []byte into sdk.Tx
 	anteHandler sdk.AnteHandler // ante handler for fee and auth
 
 	// may be nil
@@ -386,6 +385,8 @@ func (app *BaseApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeg
 	if app.beginBlocker != nil {
 		res = app.beginBlocker(app.deliverState.ctx, req)
 	}
+	// set the signed validators for addition to context in deliverTx
+	app.signedValidators = req.Validators
 	return
 }
 
@@ -503,6 +504,7 @@ func (app *BaseApp) runTx(mode runTxMode, txBytes []byte, tx sdk.Tx) (result sdk
 		ctx = ctx.WithIsCheckTx(false)
 	}
 
+	// Run the ante handler.
 	if app.anteHandler != nil {
 		newCtx, result, abort := app.anteHandler(ctx, tx)
 		if abort {
