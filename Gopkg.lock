@@ -385,6 +385,7 @@
   version = "v0.20.0"
 
 [[projects]]
+  branch = "develop"
   name = "github.com/tendermint/tmlibs"
   packages = [
     "autofile",
@@ -399,8 +400,7 @@
     "merkle",
     "merkle/tmhash"
   ]
-  revision = "fb7ec62b2925f48de159aeea73b254ae8c58a738"
-  version = "v0.9.0-rc1"
+  revision = "0c98d10b4ffbd87978d79c160e835b3d3df241ec"
 
 [[projects]]
   branch = "master"
@@ -498,6 +498,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e4975112a9fd18eae882eb042e8ee9d5fdabcd4749eee447943696ea9466cece"
+  inputs-digest = "8f61921545f27fbeede0a1c326b22badecc9edb2c47c32b9a4bcac631f987cb6"
   solver-name = "gps-cdcl"
   solver-version = 1
