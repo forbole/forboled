@@ -22,6 +22,7 @@
 [[projects]]
   name = "github.com/cosmos/cosmos-sdk"
   packages = [
+    "baseapp",
     "client",
     "client/context",
     "client/keys",
@@ -384,7 +385,6 @@
   version = "v0.20.0"
 
 [[projects]]
-  branch = "develop"
   name = "github.com/tendermint/tmlibs"
   packages = [
     "autofile",
@@ -399,7 +399,8 @@
     "merkle",
     "merkle/tmhash"
   ]
-  revision = "0c98d10b4ffbd87978d79c160e835b3d3df241ec"
+  revision = "fb7ec62b2925f48de159aeea73b254ae8c58a738"
+  version = "v0.9.0-rc1"
 
 [[projects]]
   branch = "master"
@@ -416,7 +417,7 @@
     "ripemd160",
     "salsa20/salsa"
   ]
-  revision = "37a17fe027db43f76fd88b056ddf588563fc8722"
+  revision = "a8fb68e7206f8c78be19b432c58eb52a6aa34462"
 
 [[projects]]
   branch = "master"
@@ -436,7 +437,7 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "56ede360ec1c541828fb88741b3f1049406d28f5"
+  revision = "8883426083c04a2627e6e59d84d5f6fb63d16c91"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -497,6 +498,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2dbc264fb088c65ff97a2ff4da6748328494110c5f1470119c353202e30e53c1"
+  inputs-digest = "e4975112a9fd18eae882eb042e8ee9d5fdabcd4749eee447943696ea9466cece"
   solver-name = "gps-cdcl"
   solver-version = 1
