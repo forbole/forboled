@@ -169,11 +169,13 @@ func (app *ForboleApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) a
 	// load the accounts
 	for _, facc := range genesisState.Accounts {
 		acc := facc.ToAccount()
+		acc.AccountNumber = app.accountMapper.GetNextAccountNumber(ctx)
 		app.accountMapper.SetAccount(ctx, acc)
 	}
 
 	for _, admin := range genesisState.Admins {
 		acc := admin.ToReputeAccount()
+		acc.AccountNumber = app.reputeAccountMapper.GetNextAccountNumber(ctx)
 		app.reputeAccountMapper.SetAccount(ctx, acc)
 	}
 
