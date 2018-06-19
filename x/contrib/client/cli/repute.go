@@ -48,7 +48,7 @@ func (c commander) getReputeCmd(cmd *cobra.Command, args []string) error {
 
 	ctx := context.NewCoreContextFromViper()
 
-	res, err := ctx.Query(key, c.storeName)
+	res, err := ctx.Query(auth.AddressStoreKey(key), c.storeName)
 	if err != nil {
 		return err
 	}

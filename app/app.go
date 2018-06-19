@@ -5,10 +5,12 @@ import (
 	"os"
 
 	abci "github.com/tendermint/abci/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 	cmn "github.com/tendermint/tmlibs/common"
 	dbm "github.com/tendermint/tmlibs/db"
 	"github.com/tendermint/tmlibs/log"
 
+	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -16,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/ibc"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/stake"
-	bam "github.com/forbole/forboled/baseapp"
 
 	"github.com/forbole/forboled/types"
 	"github.com/forbole/forboled/x/contrib"
@@ -166,13 +167,15 @@ func (app *ForboleApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) a
 	}
 
 	// load the accounts
-	for _, gacc := range genesisState.Accounts {
-		acc := gacc.ToAccount()
+	for _, facc := range genesisState.Accounts {
+		acc := facc.ToAccount()
+		acc.AccountNumber = app.accountMapper.GetNextAccountNumber(ctx)
 		app.accountMapper.SetAccount(ctx, acc)
 	}
 
 	for _, admin := range genesisState.Admins {
 		acc := admin.ToReputeAccount()
+		acc.AccountNumber = app.reputeAccountMapper.GetNextAccountNumber(ctx)
 		app.reputeAccountMapper.SetAccount(ctx, acc)
 	}
 
@@ -182,8 +185,44 @@ func (app *ForboleApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) a
 	return abci.ResponseInitChain{}
 }
 
-// Custom logic for state export
-func (app *ForboleApp) ExportAppStateJSON() (appState json.RawMessage, err error) {
+// // Custom logic for state export
+// func (app *ForboleApp) ExportAppStateJSON() (appState json.RawMessage, err error) {
+// 	ctx := app.NewContext(true, abci.Header{})
+
+// 	// iterate to get the accounts
+// 	accounts := []GenesisAccount{}
+// 	appendAccount := func(acc auth.Account) (stop bool) {
+// 		account := NewGenesisAccountI(acc)
+// 		accounts = append(accounts, account)
+// 		return false
+// 	}
+// 	app.accountMapper.IterateAccounts(ctx, appendAccount)
+
+// 	// iterate to get the admins
+// 	admins := []GenesisAdmin{}
+// 	appendAdmin := func(acc auth.Account) (stop bool) {
+// 		role := acc.(*types.ReputeAccount).GetRole()
+// 		if role == "Admin" {
+// 			admin := GenesisAdmin{
+// 				Address: acc.GetAddress(),
+// 				Role:    role,
+// 			}
+// 			admins = append(admins, admin)
+// 		}
+// 		return false
+// 	}
+// 	app.reputeAccountMapper.IterateAccounts(ctx, appendAdmin)
+
+// 	genState := GenesisState{
+// 		Accounts:  accounts,
+// 		Admins:    admins,
+// 		StakeData: stake.WriteGenesis(ctx, app.stakeKeeper),
+// 	}
+// 	return wire.MarshalJSONIndent(app.cdc, genState)
+// }
+
+// export the state of gaia for a genesis file
+func (app *ForboleApp) ExportAppStateAndValidators() (appState json.RawMessage, validators []tmtypes.GenesisValidator, err error) {
 	ctx := app.NewContext(true, abci.Header{})
 
 	// iterate to get the accounts
@@ -215,5 +254,10 @@ func (app *ForboleApp) ExportAppStateJSON() (appState json.RawMessage, err error
 		Admins:    admins,
 		StakeData: stake.WriteGenesis(ctx, app.stakeKeeper),
 	}
-	return wire.MarshalJSONIndent(app.cdc, genState)
+	appState, err = wire.MarshalJSONIndent(app.cdc, genState)
+	if err != nil {
+		return nil, nil, err
+	}
+	validators = stake.WriteValidators(ctx, app.stakeKeeper)
+	return appState, validators, nil
 }

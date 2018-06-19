@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/abci/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 	"github.com/tendermint/tmlibs/cli"
 	dbm "github.com/tendermint/tmlibs/db"
 	"github.com/tendermint/tmlibs/log"
@@ -27,7 +28,7 @@ func main() {
 
 	server.AddCommands(ctx, cdc, rootCmd, app.ForboleAppInit(),
 		server.ConstructAppCreator(newApp, "forbole"),
-		server.ConstructAppExporter(exportAppState, "forbole"))
+		server.ConstructAppExporter(exportAppStateAndTMValidators, "forbole"))
 
 	rootCmd.RemoveCommand(version2.VersionCmd)
 	rootCmd.AddCommand(version.VersionCmd)
@@ -40,7 +41,7 @@ func newApp(logger log.Logger, db dbm.DB) abci.Application {
 	return app.NewForboleApp(logger, db)
 }
 
-func exportAppState(logger log.Logger, db dbm.DB) (json.RawMessage, error) {
+func exportAppStateAndTMValidators(logger log.Logger, db dbm.DB) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 	fapp := app.NewForboleApp(logger, db)
-	return fapp.ExportAppStateJSON()
+	return fapp.ExportAppStateAndValidators()
 }

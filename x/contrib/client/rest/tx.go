@@ -16,7 +16,7 @@ import (
 )
 
 // RegisterRoutes - Central function to define routes that get registered by the main application
-func RegisterRoutes(ctx context.CoreContext, r *mux.Router, cdc *wire.Codec, kb keys.Keybase) {
+func registerTxRoutes(ctx context.CoreContext, r *mux.Router, cdc *wire.Codec, kb keys.Keybase) {
 	r.HandleFunc("/accounts/contrib", ContribRequestHandlerFn(cdc, kb, ctx)).Methods("POST")
 }
 
