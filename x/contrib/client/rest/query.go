@@ -99,7 +99,7 @@ func reputeAccountHandlerFn(ctx context.CoreContext, storeName string, decoder a
 		}
 		key := sdk.Address(bz)
 
-		res, err := ctx.Query(key, storeName)
+		res, err := ctx.Query(auth.AddressStoreKey(key), storeName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf("Could't query account. Error: %s", err.Error())))
