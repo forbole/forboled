@@ -142,15 +142,12 @@ func (ctb Invite) NewStatus() Status {
 
 func (ctb Invite) ValidateAccounts(ctx sdk.Context, am auth.AccountMapper) (auth.Account, sdk.Error) {
 	acc := am.GetAccount(ctx, ctb.Contributor)
-	fmt.Println("here")
 	if acc == nil {
 		return nil, sdk.ErrUnknownAddress(ctb.Contributor.String())
 	}
-	fmt.Println("check to account now")
 	if am.GetAccount(ctx, ctb.Recipient) != nil {
 		return nil, sdk.ErrUnknownAddress(ctb.Recipient.String())
 	}
-	fmt.Println("success checked")
 
 	am.SetAccount(ctx, am.NewAccountWithAddress(ctx, ctb.Recipient))
 
@@ -221,7 +218,7 @@ func (ctb BaseContrib3) GetVote() int64 {
 
 type Vote struct {
 	BaseContrib3
-	Content []byte `json: "content"`
+	Content []byte `json:"content"`
 }
 
 // Status - contrib status
