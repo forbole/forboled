@@ -27,6 +27,7 @@ func init() {
 // RegisterRoutes - Central function to define routes that get registered by the main application
 func registerTxRoutes(ctx context.CoreContext, r *mux.Router, cdc *wire.Codec, kb keys.Keybase) {
 	r.HandleFunc("/contrib/{address}/invite", InviteRequestHandlerFn(cdc, kb, ctx)).Methods("POST")
+	r.HandleFunc("/contrib/{address}/recommend", RecommendRequestHandlerFn(cdc, kb, ctx)).Methods("POST")
 }
 
 type contribBody struct {
@@ -139,6 +140,112 @@ func InviteRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreCo
 		// 	return
 		// }
 		// to := sdk.Address(bz)
+
+		// build message.
+		msg := client.BuildContribMsg(ctb)
+		if err != nil { // XXX rechecking same error ?
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		// add gas to context
+		ctx = ctx.WithGas(m.Gas)
+		// add chain-id to context
+		ctx = ctx.WithChainID(m.ChainID)
+		// sign
+		ctx = ctx.WithAccountNumber(m.AccountNumber)
+		ctx = ctx.WithSequence(m.Sequence)
+		txBytes, err := ctx.SignAndBuild(m.LocalAccountName, m.Password, msg, cdc)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		// send
+		res, err := ctx.BroadcastTx(txBytes)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		output, err := json.MarshalIndent(res, "", "  ")
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		w.Write(output)
+	}
+}
+
+func RecommendRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// collect data
+		vars := mux.Vars(r)
+		bech32addr := vars["address"]
+
+		address, err := sdk.GetAccAddressBech32(bech32addr)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		var m contribBody
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		err = msgCdc.UnmarshalJSON(body, &m)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		info, err := kb.Get(m.LocalAccountName)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		to, err := sdk.GetAccAddressHex(address.String())
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		ctbTime, err := time.Parse(time.RFC3339, m.Time)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		ctbContent, err := hex.DecodeString(m.Content)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		key, err := hex.DecodeString(m.Key)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		var ctb contrib.Contrib
+		ctb = contrib.Recommend{contrib.BaseContrib2{contrib.BaseContrib{key, info.PubKey.Address(), ctbTime}, to}, ctbContent}
 
 		// build message.
 		msg := client.BuildContribMsg(ctb)
