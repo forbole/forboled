@@ -80,27 +80,12 @@ func InviteRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreCo
 			return
 		}
 
-		// from := info.PubKey.Address()
-		// from, err := sdk.GetAccAddressHex(fromaddr.String())
-		// if err != nil {
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	w.Write([]byte(err.Error()))
-		// 	return
-		// }
-		// from = sdk.Address(from)
-
 		to, err := sdk.GetAccAddressHex(address.String())
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
 		}
-		// to, err := sdk.GetAccAddressHex(toaddr.String())
-		// if err != nil {
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	w.Write([]byte(err.Error()))
-		// 	return
-		// }
 
 		ctbTime, err := time.Parse(time.RFC3339, m.Time)
 		if err != nil {
@@ -125,21 +110,6 @@ func InviteRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreCo
 
 		var ctb contrib.Contrib
 		ctb = contrib.Invite{contrib.BaseContrib2{contrib.BaseContrib{key, info.PubKey.Address(), ctbTime}, to}, ctbContent}
-
-		// info, err := kb.Get(m.LocalAccountName)
-		// if err != nil {
-		// 	w.WriteHeader(http.StatusUnauthorized)
-		// 	w.Write([]byte(err.Error()))
-		// 	return
-		// }
-
-		// bz, err := hex.DecodeString(address)
-		// if err != nil {
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	w.Write([]byte(err.Error()))
-		// 	return
-		// }
-		// to := sdk.Address(bz)
 
 		// build message.
 		msg := client.BuildContribMsg(ctb)
