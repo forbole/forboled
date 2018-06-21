@@ -163,6 +163,22 @@ func (ctb Recommend) NewStatus() Status {
 	return &RecommendStatus{BaseStatus: BaseStatus{Score: 1, Contributor: ctb.Contributor, Time: ctb.Time}, Recipient: ctb.Recipient}
 }
 
+func (ctb Recommend) ValidateAccounts(ctx sdk.Context, am auth.AccountMapper) (auth.Account, sdk.Error) {
+	acc := am.GetAccount(ctx, ctb.Contributor)
+	if acc == nil {
+		return nil, sdk.ErrUnknownAddress(ctb.Contributor.String())
+	}
+	if am.GetAccount(ctx, ctb.Recipient) == nil {
+		return nil, sdk.ErrUnknownAddress(ctb.Recipient.String())
+	}
+	// cannot recommend his/herself
+	if acc == am.GetAccount(ctx, ctb.Recipient) {
+		return nil, sdk.ErrInvalidAddress(ctb.Recipient.String())
+	}
+
+	return acc, nil
+}
+
 type Post struct {
 	BaseContrib2
 	Content []byte `json:"content"`
@@ -212,13 +228,18 @@ func (ctb BaseContrib3) ValidateAccounts(ctx sdk.Context, am auth.AccountMapper)
 	return acc, nil
 }
 
-func (ctb BaseContrib3) GetVote() int64 {
-	return ctb.Vote
-}
-
 type Vote struct {
 	BaseContrib3
 	Content []byte `json:"content"`
+}
+
+//new status of vote always start from 1, showing difference between up and down will be in update()
+func (ctb Vote) NewStatus() Status {
+	return &VoteStatus{BaseStatus: BaseStatus{Score: 1, Contributor: ctb.Contributor, Time: ctb.Time}, Recipient: ctb.Recipient, Vote: ctb.Vote}
+}
+
+func (ctb Vote) GetVote() int64 {
+	return ctb.Vote
 }
 
 // Status - contrib status
@@ -346,18 +367,21 @@ func (status *VoteStatus) Update(ctb Contrib) sdk.Error {
 	if !ctb2.GetTime().After(status.Time) {
 		return sdk.ErrUnknownAddress("time error")
 	}
-
 	// not sure if status.Vote is getting from previous status, and GetVote() is the current vote
 	if status.Vote == ctb2.GetVote() {
-		// TODO: cancel the vote here
-		// need better score here. (plus 2 to show vote is cancelled)
+		// cancel the vote here
+		// TODO: need better score here. (plus 2 to show vote is cancelled)
 		status.Score += 2
+		// change vote status to 0 (vote is cancelled)
+		status.Vote = 0
 	} else {
 
 		// TODO: better score calculation ??????
-		// if cancel, score?
 		status.Score++
+		// change vote status
+		status.Vote = ctb2.GetVote()
 	}
+
 	status.Time = ctb.GetTime()
 	return nil
 }

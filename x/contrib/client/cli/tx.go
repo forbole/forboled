@@ -52,57 +52,42 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 				return err
 			}
 
+			ctbContent, err := hex.DecodeString(viper.GetString(flagContent))
+			if err != nil {
+				return err
+			}
+
+			// parse destination address
+			dest := viper.GetString(flagTo)
+			to, err := sdk.GetAccAddressBech32(dest)
+			if err != nil {
+				return err
+			}
+
 			ctbType := viper.GetString(flagType)
 			var ctb contrib.Contrib
 			switch ctbType {
 			case "Invite", "Recommend", "Post":
-				ctbContent, err := hex.DecodeString(viper.GetString(flagContent))
-				if err != nil {
-					return err
-				}
-
-				// parse destination address
-				dest := viper.GetString(flagTo)
-				to, err := sdk.GetAccAddressBech32(dest)
-				if err != nil {
-					return err
-				}
 
 				switch ctbType {
 				case "Invite":
 					ctb = contrib.Invite{contrib.BaseContrib2{contrib.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
-				case "Recommend":
-					ctb = contrib.Recommend{contrib.BaseContrib2{contrib.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
 				case "Post":
 					ctb = contrib.Post{contrib.BaseContrib2{contrib.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
+				case "Recommend":
+					ctb = contrib.Recommend{contrib.BaseContrib2{contrib.BaseContrib{ctbKey, from, ctbTime}, to}, ctbContent}
 				}
 			case "Vote":
-				// get content
-				ctbContent, err := hex.DecodeString(viper.GetString(flagContent))
-				if err != nil {
-					return err
-				}
-
-				// parse destination address
-				dest := viper.GetString(flagTo)
-				to, err := sdk.GetAccAddressBech32(dest)
-				if err != nil {
-					return err
-				}
 
 				// get the vote flag to see what kind of vote
 				ctbVote := viper.GetString(flagVotes)
-				fmt.Print("pass votes ")
-				fmt.Println(ctbVote)
 				if ctbVote == "Upvote" {
-					ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{ctbKey, from, ctbTime}, to, 1}, ctbContent}
+					ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{ctbKey, from, ctbTime}, to, int64(1)}, ctbContent}
 				} else if ctbVote == "Downvote" {
-					ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{ctbKey, from, ctbTime}, to, -1}, ctbContent}
+					ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{ctbKey, from, ctbTime}, to, int64(-1)}, ctbContent}
 				} else {
 					return errors.New("Invalid Vote Type")
 				}
-				// case "Cancel": // need cancel here? or do it in types.go instead when update recive?
-				// 	ctb = contrib.Vote{contrib.BaseContrib{ctbKey, from, ctbTime}, 0}
 			default:
 				return errors.New("Invalid Contrib Type")
 			}
