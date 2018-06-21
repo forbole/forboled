@@ -33,6 +33,9 @@ After=network-online.target
 [Service]
 User=forboled
 ExecStart=/bin/sh -c '/opt/go/bin/forboled start --home=/opt/forboled/'
+Restart=always
+RestartSec=3
+LimitNOFILE=4096
 [Install]
 WantedBy=multi-user.target" > forboled.service
 
