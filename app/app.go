@@ -99,7 +99,8 @@ func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
 		AddRoute("bank", bank.NewHandler(app.coinKeeper)).
 		AddRoute("ibc", ibc.NewHandler(app.ibcMapper, app.coinKeeper)).
 		AddRoute("stake", stake.NewHandler(app.stakeKeeper)).
-		AddRoute("contrib", contrib.NewHandler(app.contribKeeper))
+		AddRoute("contrib", contrib.NewHandler(app.contribKeeper)).
+		AddRoute("slashing", slashing.NewHandler(app.slashingKeeper))
 
 	// Initialize BaseApp.
 	app.SetInitChainer(app.initChainer)
