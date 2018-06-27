@@ -17,9 +17,11 @@ var (
 )
 
 func getVersion() string {
-	v := Version
-	if GitCommit != "" {
-		v = v + "-" + GitCommit
+	vForbole := VersionF
+	vCosmos := VersionC
+	v := "Forbole version: " + vForbole + "\n" + "Cosmos version: " + vCosmos
+	if GitCommitForbole != "" || GitCommitCosmos != "" {
+		v = "Forbole version: " + vForbole + "-" + GitCommitForbole + "\n" + "Cosmos version: " + vCosmos + "-" + GitCommitCosmos
 	}
 	return v
 }
