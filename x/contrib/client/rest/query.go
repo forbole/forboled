@@ -47,6 +47,7 @@ func contribHandlerFn(ctx context.CoreContext, storeName string, cdc *wire.Codec
 		// ctbAddr := sdk.Address(bz)
 
 		// decode the key to look up the contrib
+
 		key, err := hex.DecodeString(k)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
@@ -54,7 +55,7 @@ func contribHandlerFn(ctx context.CoreContext, storeName string, cdc *wire.Codec
 			return
 		}
 
-		res, err := ctx.Query(key, storeName)
+		res, err := ctx.QueryStore(key, storeName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf("Couldn't query contribution. Error: %s", err.Error())))
@@ -99,7 +100,8 @@ func reputeAccountHandlerFn(ctx context.CoreContext, storeName string, decoder a
 		}
 		key := sdk.Address(bz)
 
-		res, err := ctx.Query(auth.AddressStoreKey(key), storeName)
+		res, err := ctx.QueryStore(auth.AddressStoreKey(key), storeName)
+		// res, err := ctx.Query(storeName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf("Could't query account. Error: %s", err.Error())))

@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 )
 
@@ -48,7 +48,8 @@ func (c commander) getReputeCmd(cmd *cobra.Command, args []string) error {
 
 	ctx := context.NewCoreContextFromViper()
 
-	res, err := ctx.Query(auth.AddressStoreKey(key), c.storeName)
+	res, err := ctx.QueryStore(auth.AddressStoreKey(key), c.storeName)
+	// res, err := ctx.Query(c.storeName)
 	if err != nil {
 		return err
 	}

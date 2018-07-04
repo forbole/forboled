@@ -3,7 +3,7 @@ PACKAGES_NOCLITEST=$(shell go list ./... | grep -v '/vendor/' | grep -v github.c
 COMMIT_HASH := $(shell git rev-parse --short HEAD)
 BUILD_FLAGS = -ldflags "-X github.com/cosmos/cosmos-sdk/version.GitCommit=${COMMIT_HASH}"
 
-all: check_tools get_vendor_deps install test_lint test
+all: get_tools get_vendor_deps install test_lint test
 
 ########################################
 ### CI
@@ -35,6 +35,9 @@ destroy_kube_testnet:
 	@echo "==> Destroying deployment"
 	@kubectl delete -f app.yaml
 	@kubectl delete pvc -l app=fb
+
+install_debug:
+	go install $(BUILD_FLAGS) ./cmd/fbdebug
 
 dist:
 	@bash publish/dist.sh
@@ -144,4 +147,5 @@ remotenet-status:
 # To avoid unintended conflicts with file names, always add to .PHONY
 # unless there is a reason not to.
 # https://www.gnu.org/software/make/manual/html_node/Phony-Targets.html
-.PHONY: build install create_kube_testnet destroy_kube_testnet dist check_tools get_tools get_vendor_deps draw_deps test test_cli test_unit test_cover test_lint benchmark devdoc_init devdoc devdoc_save devdoc_update remotenet-start remotenet-stop remotenet-status
+#.PHONY: build install create_kube_testnet destroy_kube_testnet dist check_tools get_tools get_vendor_deps draw_deps test test_cli test_unit test_cover test_lint benchmark devdoc_init devdoc devdoc_save devdoc_update remotenet-start remotenet-stop remotenet-status
+.PHONY: build build_examples install install_examples install_debug dist check_tools get_tools get_vendor_deps draw_deps test test_cli test_unit test_cover test_lint benchmark devdoc_init devdoc devdoc_save devdoc_update remotenet-start remotenet-stop remotenet-status

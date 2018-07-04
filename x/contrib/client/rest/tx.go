@@ -9,7 +9,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gorilla/mux"
-	"github.com/tendermint/go-crypto/keys"
+	// "github.com/tendermint/go-crypto/keys"
+	"github.com/cosmos/cosmos-sdk/crypto/keys"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/wire"
@@ -111,17 +112,17 @@ func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreC
 		var ctb contrib.Contrib
 		switch ctbtype {
 		case "invite":
-			ctb = contrib.Invite{contrib.BaseContrib2{contrib.BaseContrib{key, info.PubKey.Address(), ctbTime}, to}, ctbContent}
+			ctb = contrib.Invite{contrib.BaseContrib2{contrib.BaseContrib{key, info.GetPubKey().Address(), ctbTime}, to}, ctbContent}
 		case "recommend":
-			ctb = contrib.Recommend{contrib.BaseContrib2{contrib.BaseContrib{key, info.PubKey.Address(), ctbTime}, to}, ctbContent}
+			ctb = contrib.Recommend{contrib.BaseContrib2{contrib.BaseContrib{key, info.GetPubKey().Address(), ctbTime}, to}, ctbContent}
 		case "post":
-			ctb = contrib.Post{contrib.BaseContrib2{contrib.BaseContrib{key, info.PubKey.Address(), ctbTime}, to}, ctbContent}
+			ctb = contrib.Post{contrib.BaseContrib2{contrib.BaseContrib{key, info.GetPubKey().Address(), ctbTime}, to}, ctbContent}
 		case "vote":
 			switch m.VoteType {
 			case "upvote":
-				ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{key, info.PubKey.Address(), ctbTime}, to, 1}, ctbContent}
+				ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{key, info.GetPubKey().Address(), ctbTime}, to, 1}, ctbContent}
 			case "downvote":
-				ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{key, info.PubKey.Address(), ctbTime}, to, -1}, ctbContent}
+				ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{key, info.GetPubKey().Address(), ctbTime}, to, -1}, ctbContent}
 			default:
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte(err.Error()))
@@ -148,7 +149,7 @@ func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreC
 		// sign
 		ctx = ctx.WithAccountNumber(m.AccountNumber)
 		ctx = ctx.WithSequence(m.Sequence)
-		txBytes, err := ctx.SignAndBuild(m.LocalAccountName, m.Password, msg, cdc)
+		txBytes, err := ctx.SignAndBuild(m.LocalAccountName, m.Password, []sdk.Msg{msg}, cdc)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error()))

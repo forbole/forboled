@@ -4,17 +4,18 @@ import (
 	"encoding/json"
 	"os"
 
-	abci "github.com/tendermint/abci/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+	cmn "github.com/tendermint/tendermint/libs/common"
+	dbm "github.com/tendermint/tendermint/libs/db"
+	"github.com/tendermint/tendermint/libs/log"
 	tmtypes "github.com/tendermint/tendermint/types"
-	cmn "github.com/tendermint/tmlibs/common"
-	dbm "github.com/tendermint/tmlibs/db"
-	"github.com/tendermint/tmlibs/log"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/ibc"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/stake"
@@ -39,13 +40,15 @@ type ForboleApp struct {
 	cdc *wire.Codec
 
 	// keys to access the substores
-	keyMain     *sdk.KVStoreKey
-	keyAccount  *sdk.KVStoreKey
-	keyIBC      *sdk.KVStoreKey
-	keyStake    *sdk.KVStoreKey
-	keySlashing *sdk.KVStoreKey
-	keyContrib  *sdk.KVStoreKey
-	keyRepute   *sdk.KVStoreKey
+	keyMain          *sdk.KVStoreKey
+	keyAccount       *sdk.KVStoreKey
+	keyIBC           *sdk.KVStoreKey
+	keyStake         *sdk.KVStoreKey
+	keySlashing      *sdk.KVStoreKey
+	keyContrib       *sdk.KVStoreKey
+	keyGov           *sdk.KVStoreKey
+	keyRepute        *sdk.KVStoreKey
+	keyFeeCollection *sdk.KVStoreKey
 
 	// Manage getting and setting accounts
 	accountMapper       auth.AccountMapper
@@ -55,6 +58,7 @@ type ForboleApp struct {
 	ibcMapper           ibc.Mapper
 	stakeKeeper         stake.Keeper
 	slashingKeeper      slashing.Keeper
+	govKeeper           gov.Keeper
 	contribKeeper       contrib.Keeper
 }
 
@@ -65,15 +69,17 @@ func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
 
 	// Create your application object.
 	var app = &ForboleApp{
-		BaseApp:     bam.NewBaseApp(appName, cdc, logger, db),
-		cdc:         cdc,
-		keyMain:     sdk.NewKVStoreKey("main"),
-		keyAccount:  sdk.NewKVStoreKey("acc"),
-		keyIBC:      sdk.NewKVStoreKey("ibc"),
-		keyStake:    sdk.NewKVStoreKey("stake"),
-		keySlashing: sdk.NewKVStoreKey("slashing"),
-		keyContrib:  sdk.NewKVStoreKey("contrib"),
-		keyRepute:   sdk.NewKVStoreKey("repute"),
+		BaseApp:          bam.NewBaseApp(appName, cdc, logger, db),
+		cdc:              cdc,
+		keyMain:          sdk.NewKVStoreKey("main"),
+		keyAccount:       sdk.NewKVStoreKey("acc"),
+		keyIBC:           sdk.NewKVStoreKey("ibc"),
+		keyStake:         sdk.NewKVStoreKey("stake"),
+		keySlashing:      sdk.NewKVStoreKey("slashing"),
+		keyContrib:       sdk.NewKVStoreKey("contrib"),
+		keyGov:           sdk.NewKVStoreKey("gov"),
+		keyFeeCollection: sdk.NewKVStoreKey("fee"),
+		keyRepute:        sdk.NewKVStoreKey("repute"),
 	}
 
 	// Define the accountMapper.
@@ -93,6 +99,8 @@ func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
 	app.ibcMapper = ibc.NewMapper(app.cdc, app.keyIBC, app.RegisterCodespace(ibc.DefaultCodespace))
 	app.stakeKeeper = stake.NewKeeper(app.cdc, app.keyStake, app.coinKeeper, app.RegisterCodespace(stake.DefaultCodespace))
 	app.slashingKeeper = slashing.NewKeeper(app.cdc, app.keySlashing, app.stakeKeeper, app.RegisterCodespace(slashing.DefaultCodespace))
+	app.govKeeper = gov.NewKeeper(app.cdc, app.keyGov, app.coinKeeper, app.stakeKeeper, app.RegisterCodespace(gov.DefaultCodespace))
+	app.feeCollectionKeeper = auth.NewFeeCollectionKeeper(app.cdc, app.keyFeeCollection)
 	app.contribKeeper = contrib.NewKeeper(app.cdc, app.reputeAccountMapper, app.keyContrib)
 	app.Router().
 		// AddRoute("auth", auth.NewHandler(app.accountMapper)).
@@ -100,7 +108,8 @@ func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
 		AddRoute("ibc", ibc.NewHandler(app.ibcMapper, app.coinKeeper)).
 		AddRoute("stake", stake.NewHandler(app.stakeKeeper)).
 		AddRoute("contrib", contrib.NewHandler(app.contribKeeper)).
-		AddRoute("slashing", slashing.NewHandler(app.slashingKeeper))
+		AddRoute("slashing", slashing.NewHandler(app.slashingKeeper)).
+		AddRoute("gov", gov.NewHandler(app.govKeeper))
 
 	// Initialize BaseApp.
 	app.SetInitChainer(app.initChainer)
@@ -108,7 +117,7 @@ func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
 	app.SetEndBlocker(app.EndBlocker)
 	app.SetAnteHandler(auth.NewAnteHandler(app.accountMapper, app.feeCollectionKeeper))
 	app.SetAnteHandler(auth.NewAnteHandler(app.reputeAccountMapper, app.feeCollectionKeeper))
-	app.MountStoresIAVL(app.keyMain, app.keyAccount, app.keyIBC, app.keyStake, app.keySlashing, app.keyContrib, app.keyRepute)
+	app.MountStoresIAVL(app.keyMain, app.keyAccount, app.keyIBC, app.keyStake, app.keySlashing, app.keyGov, app.keyFeeCollection, app.keyContrib, app.keyRepute)
 	// app.SetAnteHandlers(auth.NewAnteHandler(app.accountMapper, app.feeCollectionKeeper), auth.NewAnteHandler(app.reputeAccountMapper, app.feeCollectionKeeper))
 	err := app.LoadLatestVersion(app.keyMain)
 	if err != nil {
@@ -121,14 +130,15 @@ func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
 // Custom tx codec
 func MakeCodec() *wire.Codec {
 	var cdc = wire.NewCodec()
-	wire.RegisterCrypto(cdc) // Register crypto.
-	sdk.RegisterWire(cdc)    // Register Msgs
+	ibc.RegisterWire(cdc)
 	bank.RegisterWire(cdc)
 	stake.RegisterWire(cdc)
 	slashing.RegisterWire(cdc)
-	// auth.RegisterWire(cdc) //?needed?
-	ibc.RegisterWire(cdc)
+	gov.RegisterWire(cdc)
+	sdk.RegisterWire(cdc)
+	wire.RegisterCrypto(cdc)
 	contrib.RegisterWire(cdc)
+	// auth.RegisterWire(cdc) //?needed?
 
 	// register custom AppAccount
 	cdc.RegisterInterface((*auth.Account)(nil), nil)
@@ -150,8 +160,11 @@ func (app *ForboleApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock)
 func (app *ForboleApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	validatorUpdates := stake.EndBlocker(ctx, app.stakeKeeper)
 
+	tags, _ := gov.EndBlocker(ctx, app.govKeeper)
+
 	return abci.ResponseEndBlock{
 		ValidatorUpdates: validatorUpdates,
+		Tags:             tags,
 	}
 }
 
@@ -182,6 +195,8 @@ func (app *ForboleApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) a
 
 	// load the initial stake information
 	stake.InitGenesis(ctx, app.stakeKeeper, genesisState.StakeData)
+
+	gov.InitGenesis(ctx, app.govKeeper, gov.DefaultGenesisState())
 
 	return abci.ResponseInitChain{}
 }

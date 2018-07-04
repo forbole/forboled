@@ -25,13 +25,13 @@ func (msg MsgContrib) Type() string { return "contrib" } // TODO: "contrib/contr
 func (msg MsgContrib) ValidateBasic() sdk.Error {
 	// this just makes sure all the contribs are properly formatted
 	if len(msg.Contribs) == 0 {
-		return ErrNoContribs(DefaultCodespace).Trace("")
+		return ErrNoContribs(DefaultCodespace).TraceSDK("")
 	}
 
 	// make sure all contribs are individually valid
 	err := msg.Contribs.ValidateBasic()
 	if err != nil {
-		return err.Trace("")
+		return err.TraceSDK("")
 	}
 
 	return nil
