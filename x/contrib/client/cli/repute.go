@@ -51,7 +51,8 @@ func (c commander) getReputeCmd(cmd *cobra.Command, args []string) error {
 	res, err := ctx.QueryStore(auth.AddressStoreKey(key), c.storeName)
 	// res, err := ctx.Query(c.storeName)
 	if err != nil {
-		return err
+		return sdk.ErrUnknownAddress("No repute account with address " + addr +
+			" was found in the state.\nAre you sure there has been a transaction involving it?")
 	}
 
 	// decode the value

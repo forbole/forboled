@@ -85,6 +85,10 @@
   name = "github.com/cosmos/cosmos-sdk"
   branch = "develop"
 
+[[constraint]]
+  name = "github.com/forbole/cosmos-sdk"
+  branch = "develop"
+
 [prune]
   go-tests = true
   unused-packages = true

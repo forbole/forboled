@@ -45,10 +45,8 @@
     "client",
     "client/context",
     "client/keys",
-    "client/lcd",
     "client/rpc",
     "client/tx",
-    "cmd/gaia/app",
     "crypto",
     "crypto/keys",
     "crypto/keys/bcrypt",
@@ -98,6 +96,12 @@
   name = "github.com/ebuchman/fail-test"
   packages = ["."]
   revision = "95f809107225be108efcf10a3509e4ea6ceef3c4"
+
+[[projects]]
+  branch = "develop"
+  name = "github.com/forbole/cosmos-sdk"
+  packages = ["baseapp"]
+  revision = "9e3c639690fbca98f0cffacd6c2985338eb0d410"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
@@ -195,12 +199,6 @@
     "json/token"
   ]
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/howeyc/crc16"
-  packages = ["."]
-  revision = "2b2a61e366a66d3efb279e46176e7291001e0354"
 
 [[projects]]
   name = "github.com/inconshreveable/mousetrap"
@@ -372,12 +370,6 @@
   revision = "0d5a0ceb10cf9ab89fdd744cc8c50a83134f6697"
 
 [[projects]]
-  name = "github.com/tendermint/abci"
-  packages = ["types"]
-  revision = "68592f4d8ee34e97db94b7a7976b1309efdb7eb9"
-  version = "v0.10.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/tendermint/ed25519"
   packages = [
@@ -392,27 +384,6 @@
   packages = ["."]
   revision = "2106ca61d91029c931fd54968c2bb02dc96b1412"
   version = "0.10.1"
-
-[[projects]]
-  name = "github.com/tendermint/go-crypto"
-  packages = [
-    ".",
-    "keys",
-    "keys/bcrypt",
-    "keys/words",
-    "keys/words/wordlist"
-  ]
-  revision = "c3e19f3ea26f5c3357e0bcbb799b0761ef923755"
-  version = "v0.5.0"
-
-[[projects]]
-  name = "github.com/tendermint/go-wire"
-  packages = [
-    ".",
-    "data"
-  ]
-  revision = "fa721242b042ecd4c6ed1a934ee740db4f74e45c"
-  version = "v0.7.3"
 
 [[projects]]
   name = "github.com/tendermint/iavl"
@@ -479,17 +450,6 @@
   ]
   revision = "5923b6288fe8ce9581936ee97c2bf9cf9c02c2f4"
   version = "v0.22.0-rc2"
-
-[[projects]]
-  name = "github.com/tendermint/tmlibs"
-  packages = [
-    "cli",
-    "common",
-    "db",
-    "log"
-  ]
-  revision = "49596e0a1f48866603813df843c9409fc19805c6"
-  version = "v0.9.0"
 
 [[projects]]
   name = "github.com/zondax/ledger-goclient"
@@ -600,6 +560,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8a590364c106a2c7fd28327421927c52fd7897d752978f4e5ebfcc500c7f27fa"
+  inputs-digest = "5b6447e92e29ae53b1424b84fe99c06928d396e6fdf83f09173e0657549ae93f"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -26,6 +26,7 @@ const (
 	flagVotes   = "votes"
 	flagTime    = "time"
 	// flagRole = "role"
+	// flagAsync  = "async"
 )
 
 // ContribTxCommand will create a contrib tx and sign it with the given key
@@ -100,6 +101,17 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 
 			// build and sign the transaction, then broadcast to Tendermint
 			msg := client.BuildContribMsg(ctb)
+
+			// Add async tx ??
+			// if viper.GetBool(flagAsync) {
+			// 	res, err := ctx.EnsureSignBuildBroadcastAsync(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			// 	fmt.Println("Async contrib tx sent. tx hash: ", res.Hash.String())
+			// 	return nil
+			// }
+
 			res, err := ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
 			if err != nil {
 				return err
@@ -115,5 +127,6 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 	cmd.Flags().String(flagContent, "", "Content of the contrib")
 	cmd.Flags().String(flagVotes, "", "Votes of the contrib")
 	cmd.Flags().String(flagTime, "", "Time of the contrib")
+	// cmd.Flags().Bool(flagAsync, false, "Pass the async flag to send a tx without waiting for the tx to be included in a block")
 	return cmd
 }
