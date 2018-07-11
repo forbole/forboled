@@ -1,7 +1,7 @@
 PACKAGES=$(shell go list ./... | grep -v '/vendor/')
-PACKAGES_NOCLITEST=$(shell go list ./... | grep -v '/vendor/' | grep -v github.com/cosmos/cosmos-sdk/cmd/gaia/cli_test)
+PACKAGES_NOCLITEST=$(shell go list ./... | grep -v '/vendor/' | grep -v github.com/forbole/forboled/cmd/fbcli/cli_test)
 COMMIT_HASH := $(shell git rev-parse --short HEAD)
-BUILD_FLAGS = -ldflags "-X github.com/cosmos/cosmos-sdk/version.GitCommit=${COMMIT_HASH}"
+BUILD_FLAGS = -ldflags "-X github.com/forbole/forboled/version.GitCommit=${COMMIT_HASH}"
 
 all: get_tools get_vendor_deps install test_lint test
 

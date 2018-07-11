@@ -152,6 +152,7 @@ func MakeCodec() *wire.Codec {
 	cdc.RegisterInterface((*auth.Account)(nil), nil)
 	cdc.RegisterConcrete(&auth.BaseAccount{}, "auth/Account", nil)
 	cdc.RegisterConcrete(&types.ReputeAccount{}, "forbole/Repute", nil)
+	cdc.Seal()
 	return cdc
 }
 
