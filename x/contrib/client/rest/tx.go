@@ -53,7 +53,7 @@ func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreC
 		bech32addr := vars["address"]
 		ctbtype := vars["ctbtype"]
 
-		address, err := sdk.GetAccAddressBech32(bech32addr)
+		address, err := sdk.AccAddressFromBech32(bech32addr)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
@@ -81,7 +81,7 @@ func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreC
 			return
 		}
 
-		to, err := sdk.GetAccAddressHex(address.String())
+		to, err := sdk.AccAddressFromHex(address.String())
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
@@ -112,17 +112,17 @@ func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreC
 		var ctb contrib.Contrib
 		switch ctbtype {
 		case "invite":
-			ctb = contrib.Invite{contrib.BaseContrib2{contrib.BaseContrib{key, info.GetPubKey().Address(), ctbTime}, to}, ctbContent}
+			ctb = contrib.Invite{contrib.BaseContrib2{contrib.BaseContrib{key, sdk.AccAddress(info.GetPubKey().Address()), ctbTime}, to}, ctbContent}
 		case "recommend":
-			ctb = contrib.Recommend{contrib.BaseContrib2{contrib.BaseContrib{key, info.GetPubKey().Address(), ctbTime}, to}, ctbContent}
+			ctb = contrib.Recommend{contrib.BaseContrib2{contrib.BaseContrib{key, sdk.AccAddress(info.GetPubKey().Address()), ctbTime}, to}, ctbContent}
 		case "post":
-			ctb = contrib.Post{contrib.BaseContrib2{contrib.BaseContrib{key, info.GetPubKey().Address(), ctbTime}, to}, ctbContent}
+			ctb = contrib.Post{contrib.BaseContrib2{contrib.BaseContrib{key, sdk.AccAddress(info.GetPubKey().Address()), ctbTime}, to}, ctbContent}
 		case "vote":
 			switch m.VoteType {
 			case "upvote":
-				ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{key, info.GetPubKey().Address(), ctbTime}, to, 1}, ctbContent}
+				ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{key, sdk.AccAddress(info.GetPubKey().Address()), ctbTime}, to, 1}, ctbContent}
 			case "downvote":
-				ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{key, info.GetPubKey().Address(), ctbTime}, to, -1}, ctbContent}
+				ctb = contrib.Vote{contrib.BaseContrib3{contrib.BaseContrib{key, sdk.AccAddress(info.GetPubKey().Address()), ctbTime}, to, -1}, ctbContent}
 			default:
 				w.WriteHeader(http.StatusBadRequest)
 				w.Write([]byte(err.Error()))

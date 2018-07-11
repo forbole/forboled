@@ -232,6 +232,7 @@ func MakeCodec() *wire.Codec {
 	cdc.RegisterInterface((*auth.Account)(nil), nil)
 	cdc.RegisterConcrete(&auth.BaseAccount{}, "auth/Account", nil)
 	cdc.RegisterConcrete(&types.ReputeAccount{}, "forbole/Repute", nil)
+	cdc.Seal()
 	return cdc
 }
 
@@ -261,8 +262,7 @@ func (app *ForboleApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) a
 	// genesisState := new(GenesisState)
 	err := app.cdc.UnmarshalJSON(stateJSON, &genesisState)
 	if err != nil {
-		panic(err) // TODO https://github.com/cosmos/cosmos-sdk/issues/468
-		// return sdk.ErrGenesisParse("").TraceCause(err, "")
+		panic(err) // TODO https://github.com/cosmos/cosmos-sdk/issues/468 // return sdk.ErrGenesisParse("").TraceCause(err, "")
 	}
 
 	// load the accounts
@@ -279,9 +279,10 @@ func (app *ForboleApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) a
 	}
 
 	// load the initial stake information
-	stake.InitGenesis(ctx, app.stakeKeeper, genesisState.StakeData)
-
-	// gov.InitGenesis(ctx, app.govKeeper, gov.DefaultGenesisState())
+	err = stake.InitGenesis(ctx, app.stakeKeeper, genesisState.StakeData)
+	if err != nil {
+		panic(err) // TODO https://github.com/cosmos/cosmos-sdk/issues/468 // return sdk.ErrGenesisParse("").TraceCause(err, "")
+	}
 
 	return abci.ResponseInitChain{}
 }

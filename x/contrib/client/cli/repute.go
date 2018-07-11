@@ -41,7 +41,7 @@ func (c commander) getReputeCmd(cmd *cobra.Command, args []string) error {
 
 	// find the key to look up the account
 	addr := args[0]
-	key, err := sdk.GetAccAddressBech32(addr)
+	key, err := sdk.AccAddressFromBech32(addr)
 	if err != nil {
 		return err
 	}

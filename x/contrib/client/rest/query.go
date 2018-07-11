@@ -38,7 +38,7 @@ func contribHandlerFn(ctx context.CoreContext, storeName string, cdc *wire.Codec
 		// address := vars["address"]
 		k := vars["key"]
 
-		// bz, err := sdk.GetAccAddressBech32(address)
+		// bz, err := sdk.AccAddressFromBech32(address)
 		// if err != nil {
 		// 	w.WriteHeader(http.StatusBadRequest)
 		// 	w.Write([]byte(err.Error()))
@@ -92,13 +92,12 @@ func reputeAccountHandlerFn(ctx context.CoreContext, storeName string, decoder a
 		vars := mux.Vars(r)
 		addr := vars["address"]
 
-		bz, err := sdk.GetAccAddressBech32(addr)
+		key, err := sdk.AccAddressFromBech32(addr)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
 		}
-		key := sdk.Address(bz)
 
 		res, err := ctx.QueryStore(auth.AddressStoreKey(key), storeName)
 		// res, err := ctx.Query(storeName)

@@ -14,7 +14,7 @@ import (
 
 type Contrib interface {
 	GetKey() []byte
-	GetContributor() sdk.Address
+	GetContributor() sdk.AccAddress
 	GetTime() time.Time
 	AppendTags(*sdk.Tags)
 	NewStatus() Status
@@ -44,9 +44,9 @@ func (contribs Contribs) ValidateBasic() sdk.Error {
 }
 
 type BaseContrib struct {
-	Key         []byte      `json:"key"`
-	Contributor sdk.Address `json:"contributor"`
-	Time        time.Time   `json:"time"`
+	Key         []byte         `json:"key"`
+	Contributor sdk.AccAddress `json:"contributor"`
+	Time        time.Time      `json:"time"`
 }
 
 // Implements Contrib
@@ -54,7 +54,7 @@ func (ctb BaseContrib) GetKey() []byte {
 	return ctb.Key
 }
 
-func (ctb BaseContrib) GetContributor() sdk.Address {
+func (ctb BaseContrib) GetContributor() sdk.AccAddress {
 	return ctb.Contributor
 }
 
@@ -94,7 +94,7 @@ func (ctb BaseContrib) String() string {
 
 type BaseContrib2 struct {
 	BaseContrib
-	Recipient sdk.Address `json:"recipient"`
+	Recipient sdk.AccAddress `json:"recipient"`
 }
 
 func (ctb BaseContrib2) AppendTags(tags *sdk.Tags) {
@@ -190,8 +190,8 @@ func (ctb Post) NewStatus() Status {
 
 type BaseContrib3 struct {
 	BaseContrib
-	Recipient sdk.Address `json:"recipient"`
-	Vote      int64       `json:"vote"`
+	Recipient sdk.AccAddress `json:"recipient"`
+	Vote      int64          `json:"vote"`
 }
 
 func (ctb BaseContrib3) AppendTags(tags *sdk.Tags) {
@@ -249,9 +249,9 @@ type Status interface {
 }
 
 type BaseStatus struct {
-	Score       int64       `json:"score"`
-	Contributor sdk.Address `json:"contributor"`
-	Time        time.Time   `json:"time"`
+	Score       int64          `json:"score"`
+	Contributor sdk.AccAddress `json:"contributor"`
+	Time        time.Time      `json:"time"`
 }
 
 func (status BaseStatus) GetScore() int64 {
@@ -275,7 +275,7 @@ func (status *BaseStatus) Update(ctb Contrib) sdk.Error {
 
 type BaseStatus2 struct {
 	BaseStatus
-	Recipient sdk.Address `json:"recipient"`
+	Recipient sdk.AccAddress `json:"recipient"`
 }
 
 func (status *BaseStatus2) Update(ctb Contrib) sdk.Error {
@@ -327,8 +327,8 @@ type PostStatus BaseStatus2
 
 type BaseStatus3 struct {
 	BaseStatus
-	Recipient sdk.Address `json:"recipient"`
-	Vote      int64       `json:"vote"`
+	Recipient sdk.AccAddress `json:"recipient"`
+	Vote      int64          `json:"vote"`
 }
 
 func (status *BaseStatus3) Update(ctb Contrib) sdk.Error {

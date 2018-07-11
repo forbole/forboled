@@ -2,7 +2,6 @@ package cli
 
 import (
 	"encoding/hex"
-	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -60,7 +59,7 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 
 			// parse destination address
 			dest := viper.GetString(flagTo)
-			to, err := sdk.GetAccAddressBech32(dest)
+			to, err := sdk.AccAddressFromBech32(dest)
 			if err != nil {
 				return err
 			}
@@ -112,11 +111,11 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 			// 	return nil
 			// }
 
-			res, err := ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
+			err = ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Committed at block %d. Hash: %s\n", res.Height, res.Hash.String())
+			// fmt.Printf("Committed at block %d. Hash: %s\n", res.Height, res.Hash.String())
 			return nil
 		},
 	}

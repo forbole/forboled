@@ -29,8 +29,8 @@ type GenesisState struct {
 
 // GenesisAccount doesn't need pubkey or sequence
 type GenesisAccount struct {
-	Address sdk.Address `json:"address"`
-	Coins   sdk.Coins   `json:"coins"`
+	Address sdk.AccAddress `json:"address"`
+	Coins   sdk.Coins      `json:"coins"`
 }
 
 func NewGenesisAccount(acc *auth.BaseAccount) GenesisAccount {
@@ -57,7 +57,7 @@ func (ga *GenesisAccount) ToAccount() (acc *auth.BaseAccount) {
 
 // GenesisAdmin doesn't need pubkey or sequence
 type GenesisAdmin struct {
-	Address sdk.Address `json:"address"`
+	Address sdk.AccAddress `json:"address"`
 	// Repute  int64       `json:"repute"`
 	Role string `json:"role"`
 }
@@ -112,9 +112,9 @@ func ForboleAppInit() server.AppInit {
 
 // simple genesis tx
 type ForboleGenTx struct {
-	Name    string        `json:"name"`
-	Address sdk.Address   `json:"address"`
-	PubKey  crypto.PubKey `json:"pub_key"`
+	Name    string         `json:"name"`
+	Address sdk.AccAddress `json:"address"`
+	PubKey  string         `json:"pub_key"`
 }
 
 // Generate a forbole genesis transaction
@@ -124,7 +124,7 @@ func ForboleAppGenTx(cdc *wire.Codec, pk crypto.PubKey, genTxConfig config.GenTx
 		return nil, nil, tmtypes.GenesisValidator{}, errors.New("Must specify --name (validator moniker)")
 	}
 
-	var addr sdk.Address
+	var addr sdk.AccAddress
 	var secret string
 	// clientRoot := viper.GetString(flagClientHome)
 	// overwrite := viper.GetBool(flagOWK)
@@ -149,14 +149,14 @@ func ForboleAppGenTx(cdc *wire.Codec, pk crypto.PubKey, genTxConfig config.GenTx
 	return
 }
 
-func ForboleAppGenTxNF(cdc *wire.Codec, pk crypto.PubKey, addr sdk.Address, name string) (
+func ForboleAppGenTxNF(cdc *wire.Codec, pk crypto.PubKey, addr sdk.AccAddress, name string) (
 	appGenTx, cliPrint json.RawMessage, validator tmtypes.GenesisValidator, err error) {
 
 	var bz []byte
 	forboleGenTx := ForboleGenTx{
 		Name:    name,
 		Address: addr,
-		PubKey:  pk,
+		PubKey:  sdk.MustBech32ifyAccPub(pk),
 	}
 	bz, err = wire.MarshalJSONIndent(cdc, forboleGenTx)
 	if err != nil {
@@ -209,7 +209,8 @@ func ForboleAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (genesisSt
 		// add the validator
 		if len(genTx.Name) > 0 {
 			desc := stake.NewDescription(genTx.Name, "", "", "")
-			validator := stake.NewValidator(genTx.Address, genTx.PubKey, desc)
+			validator := stake.NewValidator(genTx.Address,
+				sdk.MustGetAccPubKeyBech32(genTx.PubKey), desc)
 
 			stakeData.Pool.LooseTokens = stakeData.Pool.LooseTokens + freeFermionVal // increase the supply
 

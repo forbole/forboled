@@ -9,9 +9,13 @@ import (
 const (
 	DefaultCodespace sdk.CodespaceType = 2
 
-	CodeInvalidInput   sdk.CodeType = 901
-	CodeInvalidOutput  sdk.CodeType = 902
-	CodeInvalidContrib sdk.CodeType = 903
+	CodeNotValidator     sdk.CodeType = 1101
+	CodeAlreadyProcessed sdk.CodeType = 1102
+	CodeAlreadySigned    sdk.CodeType = 1103
+	CodeUnknownRequest   sdk.CodeType = sdk.CodeUnknownRequest
+	CodeInvalidInput     sdk.CodeType = 901
+	CodeInvalidOutput    sdk.CodeType = 902
+	CodeInvalidContrib   sdk.CodeType = 903
 )
 
 // NOTE: Don't stringer this, we'll put better messages in later.
@@ -30,6 +34,21 @@ func codeToDefaultMsg(code sdk.CodeType) string {
 
 //----------------------------------------
 // Error constructors
+
+// ErrNotValidator called when the signer of a Msg is not a validator
+func ErrNotValidator(codespace sdk.CodespaceType, address sdk.AccAddress) sdk.Error {
+	return sdk.NewError(codespace, CodeNotValidator, address.String())
+}
+
+// ErrAlreadyProcessed called when a payload is already processed
+func ErrAlreadyProcessed(codespace sdk.CodespaceType) sdk.Error {
+	return sdk.NewError(codespace, CodeAlreadyProcessed, "")
+}
+
+// ErrAlreadySigned called when the signer is trying to double signing
+func ErrAlreadySigned(codespace sdk.CodespaceType) sdk.Error {
+	return sdk.NewError(codespace, CodeAlreadySigned, "")
+}
 
 func ErrInvalidInput(codespace sdk.CodespaceType, msg string) sdk.Error {
 	return newError(codespace, CodeInvalidInput, msg)

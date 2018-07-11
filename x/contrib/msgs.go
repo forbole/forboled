@@ -43,13 +43,14 @@ func (msg MsgContrib) GetSignBytes() []byte {
 	if err != nil {
 		panic(err)
 	}
-	return b
+	// return b
+	return sdk.MustSortJSON(b)
 }
 
 // Implements Msg.
-func (msg MsgContrib) GetSigners() []sdk.Address {
+func (msg MsgContrib) GetSigners() []sdk.AccAddress {
 	m := make(map[string]struct{})
-	addrs := make([]sdk.Address, 0, len(msg.Contribs))
+	addrs := make([]sdk.AccAddress, 0, len(msg.Contribs))
 	for _, ctb := range msg.Contribs {
 		contributor := ctb.GetContributor()
 		key := contributor.String()

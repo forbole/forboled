@@ -28,9 +28,9 @@
   name = "github.com/bgentry/speakeasy"
   version = "~0.1.0"
 
-[[constraint]]
+[[override]]
   name = "github.com/golang/protobuf"
-  version = "~1.0.0"
+  version = "=1.1.0"
 
 [[constraint]]
   name = "github.com/mattn/go-isatty"
@@ -58,15 +58,11 @@
 
 [[constraint]]
   name = "github.com/tendermint/iavl"
-  version = "=v0.8.2-rc0"
+  version = "=v0.9.2"
 
-[[constraint]]
+[[override]]
   name = "github.com/tendermint/tendermint"
-  version = "=0.22.0-rc2"
-
-[[constraint]]
-  name = "github.com/tendermint/tmlibs"
-  version = "=0.9.0"
+  version = "=0.22.2"
 
 [[constraint]]
   name = "github.com/bartekn/go-bip39"
@@ -76,18 +72,13 @@
   name = "github.com/zondax/ledger-goclient"
   revision = "065cbf938a16f20335c40cfe180f9cd4955c6a5a"
 
-# this got updated and broke, so locked to an old working commit ...
-[[override]]
-  name = "google.golang.org/genproto"
-  revision = "7fd901a49ba6a7f87732eb344f6e3c5b19d1b200"
-
 [[constraint]]
   name = "github.com/cosmos/cosmos-sdk"
-  branch = "develop"
+  version = "0.20.0"
 
 [[constraint]]
   name = "github.com/forbole/cosmos-sdk"
-  branch = "develop"
+  revision = "38155b4338da3d965df7cbc42e5de3977f782a8a"
 
 [prune]
   go-tests = true
