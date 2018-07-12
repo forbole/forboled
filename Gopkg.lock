@@ -93,7 +93,7 @@
     "x/stake/client/rest",
     "x/stake/keeper",
     "x/stake/tags",
-    "x/stake/types"
+    "x/stake/types",
   ]
   pruneopts = "UT"
   revision = "080dd5b97a90005cac0c730a81fd1d6864b9fd3e"
@@ -116,11 +116,11 @@
   revision = "95f809107225be108efcf10a3509e4ea6ceef3c4"
 
 [[projects]]
-  digest = "1:984f9799b30d1c219df9bb128273f6dcfde3d35a11fcbf00f14f7c718754a09d"
+  digest = "1:fc0bdc07c7a1a6fe05dc914abe5cf5ac09d228e679f4ec9060bdfaca6e0a54b3"
   name = "github.com/forbole/cosmos-sdk"
   packages = ["baseapp"]
   pruneopts = "UT"
-  revision = "38155b4338da3d965df7cbc42e5de3977f782a8a"
+  revision = "0a9d971559a824b939078a388689d7d2b5a0d4d2"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
@@ -140,7 +140,7 @@
     "metrics",
     "metrics/discard",
     "metrics/internal/lv",
-    "metrics/prometheus"
+    "metrics/prometheus",
   ]
   pruneopts = "UT"
   revision = "4dc7be5d2d12881735283bcab7352178e190fc71"
@@ -171,7 +171,7 @@
     "proto",
     "protoc-gen-gogo/descriptor",
     "sortkeys",
-    "types"
+    "types",
   ]
   pruneopts = "UT"
   revision = "1adfc126b41513cc696b209667c8656ea7aac67c"
@@ -185,7 +185,7 @@
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
-    "ptypes/timestamp"
+    "ptypes/timestamp",
   ]
   pruneopts = "UT"
   revision = "b4deda0973fb4c70b50d226b1af49f3da59f5265"
@@ -237,7 +237,7 @@
     "hcl/token",
     "json/parser",
     "json/scanner",
-    "json/token"
+    "json/token",
   ]
   pruneopts = "UT"
   revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
@@ -328,7 +328,7 @@
   name = "github.com/prometheus/client_golang"
   packages = [
     "prometheus",
-    "prometheus/promhttp"
+    "prometheus/promhttp",
   ]
   pruneopts = "UT"
   revision = "ee1c9d7e23df7f011bdf6f12a5c9e7f0ae10a1fe"
@@ -348,7 +348,7 @@
   packages = [
     "expfmt",
     "internal/bitbucket.org/ww/goautoneg",
-    "model"
+    "model",
   ]
   pruneopts = "UT"
   revision = "7600349dcfe1abd18d72d3a1770870d9800a7801"
@@ -361,7 +361,7 @@
     ".",
     "internal/util",
     "nfs",
-    "xfs"
+    "xfs",
   ]
   pruneopts = "UT"
   revision = "ae68e2d4c00fed4943b5f6698d504a5fe083da8a"
@@ -379,7 +379,7 @@
   name = "github.com/spf13/afero"
   packages = [
     ".",
-    "mem"
+    "mem",
   ]
   pruneopts = "UT"
   revision = "787d034dfe70e44075ccc060d346146ef53270ad"
@@ -430,7 +430,7 @@
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
-    "require"
+    "require",
   ]
   pruneopts = "UT"
   revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
@@ -452,7 +452,7 @@
     "leveldb/opt",
     "leveldb/storage",
     "leveldb/table",
-    "leveldb/util"
+    "leveldb/util",
   ]
   pruneopts = "UT"
   revision = "c4c61651e9e37fa117f53c5a906d3b63090d8445"
@@ -464,7 +464,7 @@
   packages = [
     ".",
     "edwards25519",
-    "extra25519"
+    "extra25519",
   ]
   pruneopts = "UT"
   revision = "d8387025d2b9d158cf4efb07e7ebf814bcce2057"
@@ -541,7 +541,7 @@
     "state/txindex/kv",
     "state/txindex/null",
     "types",
-    "version"
+    "version",
   ]
   pruneopts = "UT"
   revision = "5ff65274b84ea905787a48512cc3124385bddf2f"
@@ -569,14 +569,14 @@
     "pbkdf2",
     "poly1305",
     "ripemd160",
-    "salsa20/salsa"
+    "salsa20/salsa",
   ]
   pruneopts = "UT"
   revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
   branch = "master"
-  digest = "1:4c913f6fdba954549f5e830faa4808839215362667c3d433f8c4e9c1168ec0a1"
+  digest = "1:5931f495d71a0a0676b481adefe2aa872ec17b603f9d96178956f9988b911dff"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -586,10 +586,10 @@
     "idna",
     "internal/timeseries",
     "netutil",
-    "trace"
+    "trace",
   ]
   pruneopts = "UT"
-  revision = "039a4258aec0ad3c79b905677cceeab13b296a77"
+  revision = "cffdcf672aee934982473246bc7e9a8ba446aa9b"
 
 [[projects]]
   branch = "master"
@@ -616,7 +616,7 @@
     "unicode/bidi",
     "unicode/cldr",
     "unicode/norm",
-    "unicode/rangetable"
+    "unicode/rangetable",
   ]
   pruneopts = "UT"
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
@@ -656,7 +656,7 @@
     "stats",
     "status",
     "tap",
-    "transport"
+    "transport",
   ]
   pruneopts = "UT"
   revision = "d11072e7ca9811b1100b80ca0269ac831f06d024"
@@ -724,7 +724,7 @@
     "github.com/tendermint/tendermint/proxy",
     "github.com/tendermint/tendermint/rpc/core/types",
     "github.com/tendermint/tendermint/rpc/lib/server",
-    "github.com/tendermint/tendermint/types"
+    "github.com/tendermint/tendermint/types",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

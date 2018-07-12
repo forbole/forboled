@@ -78,7 +78,7 @@
 
 [[constraint]]
   name = "github.com/forbole/cosmos-sdk"
-  revision = "38155b4338da3d965df7cbc42e5de3977f782a8a"
+  revision = "0a9d971559a824b939078a388689d7d2b5a0d4d2"
 
 [prune]
   go-tests = true
