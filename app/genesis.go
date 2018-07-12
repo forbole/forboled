@@ -204,7 +204,7 @@ func ForboleAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (genesisSt
 		genaccs[i] = acc
 		admin := NewGenesisAdmin(&accAuth)
 		admins[i] = admin
-		stakeData.Pool.LooseTokens += freeFermionsAcc // increase the supply
+		stakeData.Pool.LooseTokens = stakeData.Pool.LooseTokens + freeFermionsAcc // increase the supply
 
 		// add the validator
 		if len(genTx.Name) > 0 {

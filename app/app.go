@@ -118,8 +118,8 @@ func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
 	app.SetEndBlocker(app.EndBlocker)
 	// app.SetAnteHandler(auth.NewAnteHandler(app.accountMapper, app.feeCollectionKeeper))
 	// app.SetAnteHandler(auth.NewAnteHandler(app.reputeAccountMapper, app.feeCollectionKeeper))
-	app.MountStoresIAVL(app.keyMain, app.keyAccount, app.keyIBC, app.keyStake, app.keySlashing, app.keyGov, app.keyFeeCollection, app.keyContrib, app.keyRepute)
 	app.SetAnteHandlers(auth.NewAnteHandler(app.accountMapper, app.feeCollectionKeeper), auth.NewAnteHandler(app.reputeAccountMapper, app.feeCollectionKeeper))
+	app.MountStoresIAVL(app.keyMain, app.keyAccount, app.keyIBC, app.keyStake, app.keySlashing, app.keyGov, app.keyFeeCollection, app.keyContrib, app.keyRepute)
 
 	// set AnteHandler
 	// var ahs [2]sdk.AnteHandler
@@ -203,7 +203,6 @@ func (app *ForboleApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) a
 	}
 
 	// load the initial stake information
-	stake.InitGenesis(ctx, app.stakeKeeper, genesisState.StakeData)
 	err = stake.InitGenesis(ctx, app.stakeKeeper, genesisState.StakeData)
 	if err != nil {
 		panic(err) // TODO https://github.com/cosmos/cosmos-sdk/issues/468
