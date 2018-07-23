@@ -52,11 +52,11 @@
   name = "github.com/stretchr/testify"
   version = "=1.2.1"
 
-[[constraint]]
+[[override]]
   name = "github.com/tendermint/go-amino"
   version = "=0.10.1"
 
-[[constraint]]
+[[override]]
   name = "github.com/tendermint/iavl"
   version = "=v0.9.2"
 
@@ -70,15 +70,15 @@
 
 [[constraint]]
   name = "github.com/zondax/ledger-goclient"
-  revision = "065cbf938a16f20335c40cfe180f9cd4955c6a5a"
+  revision = "39ba4728c137c75718a21f9b4b3280fa31b9139b"
 
 [[constraint]]
   name = "github.com/cosmos/cosmos-sdk"
-  version = "0.20.0"
+  version = "v0.22.0"
 
 [[constraint]]
-  name = "github.com/forbole/cosmos-sdk"
-  revision = "0a9d971559a824b939078a388689d7d2b5a0d4d2"
+  name = "github.com/forboled/cosmos-sdk"
+  revision = "1ab5c9ce071c1beb01549109f69f902314ee8be4"
 
 [prune]
   go-tests = true

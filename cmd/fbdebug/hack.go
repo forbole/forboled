@@ -7,7 +7,10 @@ import (
 	"os"
 	"path"
 
+	"github.com/forbole/cosmos-sdk/baseapp"
+
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -48,7 +51,7 @@ func runHackCmd(cmd *cobra.Command, args []string) error {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	app := NewForboleApp(logger, db)
+	app := NewForboleApp(logger, db, baseapp.SetPruning(viper.GetString("pruning")))
 
 	// print some info
 	id := app.LastCommitID()
@@ -151,14 +154,17 @@ type ForboleApp struct {
 	contribKeeper       contrib.Keeper
 }
 
-func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
+func NewForboleApp(logger log.Logger, db dbm.DB, baseAppOptions ...func(*bam.BaseApp)) *ForboleApp {
 
 	// Create app-level codec for txs and accounts.
 	var cdc = MakeCodec()
 
+	bApp := bam.NewBaseApp(appName, cdc, logger, db, baseAppOptions...)
+	bApp.SetCommitMultiStoreTracer(os.Stdout)
+
 	// Create your application object.
 	var app = &ForboleApp{
-		BaseApp:          bam.NewBaseApp(appName, cdc, logger, db),
+		BaseApp:          bApp,
 		cdc:              cdc,
 		keyMain:          sdk.NewKVStoreKey("main"),
 		keyAccount:       sdk.NewKVStoreKey("acc"),
@@ -174,13 +180,13 @@ func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
 	// Define the accountMapper.
 	app.accountMapper = auth.NewAccountMapper(
 		app.cdc,
-		app.keyAccount,      // target store
-		&auth.BaseAccount{}, // prototype
+		app.keyAccount,        // target store
+		auth.ProtoBaseAccount, // prototype
 	)
 	app.reputeAccountMapper = auth.NewAccountMapper(
 		app.cdc,
-		app.keyRepute,          // target store
-		&types.ReputeAccount{}, // prototype
+		app.keyRepute,            // target store
+		types.ProtoReputeAccount, // prototype   //have to change it here as well??????
 	)
 
 	// Add handlers.

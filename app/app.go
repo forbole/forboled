@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"io"
 	"os"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -63,14 +64,16 @@ type ForboleApp struct {
 	contribKeeper       contrib.Keeper
 }
 
-func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
+func NewForboleApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOptions ...func(*bam.BaseApp)) *ForboleApp {
 
 	// Create app-level codec for txs and accounts.
 	var cdc = MakeCodec()
 
-	// Create your application object.
+	bApp := bam.NewBaseApp(appName, cdc, logger, db, baseAppOptions...)
+	bApp.SetCommitMultiStoreTracer(traceStore)
+
 	var app = &ForboleApp{
-		BaseApp:          bam.NewBaseApp(appName, cdc, logger, db),
+		BaseApp:          bApp,
 		cdc:              cdc,
 		keyMain:          sdk.NewKVStoreKey("main"),
 		keyAccount:       sdk.NewKVStoreKey("acc"),
@@ -86,13 +89,13 @@ func NewForboleApp(logger log.Logger, db dbm.DB) *ForboleApp {
 	// Define the accountMapper.
 	app.accountMapper = auth.NewAccountMapper(
 		app.cdc,
-		app.keyAccount,      // target store
-		&auth.BaseAccount{}, // prototype
+		app.keyAccount,        // target store
+		auth.ProtoBaseAccount, // prototype
 	)
 	app.reputeAccountMapper = auth.NewAccountMapper(
 		app.cdc,
-		app.keyRepute,          // target store
-		&types.ReputeAccount{}, // prototype
+		app.keyRepute,            // target store
+		types.ProtoReputeAccount, // prototype //have to change here as well ????????????
 	)
 
 	// Add handlers.

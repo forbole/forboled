@@ -2,8 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"io"
+
+	"github.com/forbole/cosmos-sdk/baseapp"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/cli"
@@ -42,11 +46,11 @@ func main() {
 	}
 }
 
-func newApp(logger log.Logger, db dbm.DB) abci.Application {
-	return app.NewForboleApp(logger, db)
+func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
+	return app.NewForboleApp(logger, db, traceStore, baseapp.SetPruning(viper.GetString("pruning")))
 }
 
-func exportAppStateAndTMValidators(logger log.Logger, db dbm.DB) (json.RawMessage, []tmtypes.GenesisValidator, error) {
-	fapp := app.NewForboleApp(logger, db)
-	return fapp.ExportAppStateAndValidators()
+func exportAppStateAndTMValidators(logger log.Logger, db dbm.DB, traceStore io.Writer) (json.RawMessage, []tmtypes.GenesisValidator, error) {
+	fApp := app.NewForboleApp(logger, db, traceStore)
+	return fApp.ExportAppStateAndValidators()
 }

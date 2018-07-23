@@ -39,7 +39,7 @@
   name = "github.com/btcsuite/btcd"
   packages = ["btcec"]
   pruneopts = "UT"
-  revision = "fdfc19097e7ac6b57035062056f5b7b4638b8898"
+  revision = "9a2f9524024889e129a5422aca2cff73cb3eabf6"
 
 [[projects]]
   branch = "master"
@@ -50,7 +50,7 @@
   revision = "ab6388e0c60ae4834a1f57511e20c17b5f78be4b"
 
 [[projects]]
-  digest = "1:42f7981a79d29c0ef106703f4e081b39bd728fb05fffc4f5af9069d88ab0c7e9"
+  digest = "1:2f36cf0088f76a7b22552c03c0ec129b73c5ea076bb5ce37d79301373fdd1ea2"
   name = "github.com/cosmos/cosmos-sdk"
   packages = [
     "baseapp",
@@ -96,8 +96,8 @@
     "x/stake/types",
   ]
   pruneopts = "UT"
-  revision = "080dd5b97a90005cac0c730a81fd1d6864b9fd3e"
-  version = "v0.20.0"
+  revision = "9f2b83cbe9e1b35b350703366b5e7f5806c5547e"
+  version = "v0.22.0"
 
 [[projects]]
   digest = "1:a2c1d0e43bd3baaa071d1b9ed72c27d78169b2b269f71c105ac4ba34b1be4a39"
@@ -116,11 +116,12 @@
   revision = "95f809107225be108efcf10a3509e4ea6ceef3c4"
 
 [[projects]]
-  digest = "1:fc0bdc07c7a1a6fe05dc914abe5cf5ac09d228e679f4ec9060bdfaca6e0a54b3"
+  digest = "1:f1c57847c788777354fd1116268cd29f7d69ed5cd4681297b86635cf0184d0e7"
   name = "github.com/forbole/cosmos-sdk"
   packages = ["baseapp"]
   pruneopts = "UT"
-  revision = "0a9d971559a824b939078a388689d7d2b5a0d4d2"
+  revision = "1ab5c9ce071c1beb01549109f69f902314ee8be4"
+  version = "develop"
 
 [[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
@@ -292,11 +293,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e730597b38a4d56e2361e0b6236cb800e52c73cace2ff91396f4ff35792ddfa7"
+  digest = "1:5ab79470a1d0fb19b041a624415612f8236b3c06070161a910562f2b2d064355"
   name = "github.com/mitchellh/mapstructure"
   packages = ["."]
   pruneopts = "UT"
-  revision = "bb74f1db0675b241733089d5a1faa5dd8b0ef57b"
+  revision = "f15292f7a699fcc1a38a80977f80a046874ba8ac"
 
 [[projects]]
   digest = "1:95741de3af260a92cc5c7f3f3061e85273f5a81b5db20d4bd68da74bd521675e"
@@ -324,22 +325,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:98225904b7abff96c052b669b25788f18225a36673fba022fb93514bb9a2a64e"
+  digest = "1:71b82d0d43896d765397872eaecbae17eb65075b7722e58d195100a47f9b11ac"
   name = "github.com/prometheus/client_golang"
   packages = [
     "prometheus",
     "prometheus/promhttp",
   ]
   pruneopts = "UT"
-  revision = "ee1c9d7e23df7f011bdf6f12a5c9e7f0ae10a1fe"
+  revision = "bcbbc08eb2ddff3af83bbf11e7ec13b4fd730b6e"
 
 [[projects]]
   branch = "master"
-  digest = "1:53a76eb11bdc815fcf0c757a9648fda0ab6887da13f07587181ff2223b67956c"
+  digest = "1:0f37e09b3e92aaeda5991581311f8dbf38944b36a3edec61cc2d1991f527554a"
   name = "github.com/prometheus/client_model"
   packages = ["go"]
   pruneopts = "UT"
-  revision = "99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c"
+  revision = "5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f"
 
 [[projects]]
   branch = "master"
@@ -548,11 +549,11 @@
   version = "v0.22.2"
 
 [[projects]]
-  digest = "1:9d2f5bccd058537986ef2862b8c6daff855f293d924ae8ebc18974143ae9191e"
+  digest = "1:5bd938386bd1f61a581bf8cd6ff2b7b2f79c542929176db4ceb44965440dae07"
   name = "github.com/zondax/ledger-goclient"
   packages = ["."]
   pruneopts = "UT"
-  revision = "065cbf938a16f20335c40cfe180f9cd4955c6a5a"
+  revision = "39ba4728c137c75718a21f9b4b3280fa31b9139b"
 
 [[projects]]
   branch = "master"
@@ -572,11 +573,11 @@
     "salsa20/salsa",
   ]
   pruneopts = "UT"
-  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
+  revision = "a2144134853fc9a27a7b1e3eb4f19f1a76df13c9"
 
 [[projects]]
   branch = "master"
-  digest = "1:5931f495d71a0a0676b481adefe2aa872ec17b603f9d96178956f9988b911dff"
+  digest = "1:a2f718c98c80bf4bab8534dba58ce0ca69db1e6683d7da492b77afa0c947c753"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -589,7 +590,7 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "cffdcf672aee934982473246bc7e9a8ba446aa9b"
+  revision = "a680a1efc54dd51c040b3b5ce4939ea3cf2ea0d1"
 
 [[projects]]
   branch = "master"
@@ -597,7 +598,7 @@
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "1b2967e3c290b7c545b3db0deeda16e9be4f98a2"
+  revision = "ac767d655b305d4e9612f5f6e33120b9176c4ad4"
 
 [[projects]]
   digest = "1:7509ba4347d1f8de6ae9be8818b0cd1abc3deeffe28aeaf4be6d4b6b5178d9ca"
@@ -628,7 +629,7 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "e92b116572682a5b432ddd840aeaba2a559eeff1"
+  revision = "02b4e95473316948020af0b7a4f0f22c73929b0e"
 
 [[projects]]
   digest = "1:4d7b5d9746840266938cdb21a40f8eba7137d9153c4ed404d6bb2a450d06f690"

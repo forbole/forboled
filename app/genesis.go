@@ -204,7 +204,7 @@ func ForboleAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (genesisSt
 		genaccs[i] = acc
 		admin := NewGenesisAdmin(&accAuth)
 		admins[i] = admin
-		stakeData.Pool.LooseTokens = stakeData.Pool.LooseTokens + freeFermionsAcc // increase the supply
+		stakeData.Pool.LooseTokens = stakeData.Pool.LooseTokens.Add(sdk.NewRat(freeFermionsAcc)) // increase the supply
 
 		// add the validator
 		if len(genTx.Name) > 0 {
@@ -212,7 +212,7 @@ func ForboleAppGenState(cdc *wire.Codec, appGenTxs []json.RawMessage) (genesisSt
 			validator := stake.NewValidator(genTx.Address,
 				sdk.MustGetAccPubKeyBech32(genTx.PubKey), desc)
 
-			stakeData.Pool.LooseTokens = stakeData.Pool.LooseTokens + freeFermionVal // increase the supply
+			stakeData.Pool.LooseTokens = stakeData.Pool.LooseTokens.Add(sdk.NewRat(freeFermionVal)) // increase the supply
 
 			// add some new shares to the validator
 			var issuedDelShares sdk.Rat
