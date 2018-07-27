@@ -53,7 +53,7 @@ func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreC
 		bech32addr := vars["address"]
 		ctbtype := vars["ctbtype"]
 
-		address, err := sdk.AccAddressFromBech32(bech32addr)
+		to, err := sdk.AccAddressFromBech32(bech32addr)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
@@ -81,12 +81,12 @@ func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreC
 			return
 		}
 
-		to, err := sdk.AccAddressFromHex(address.String())
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(err.Error()))
-			return
-		}
+		// to, err := sdk.AccAddressFromHex(address.String())
+		// if err != nil {
+		// 	w.WriteHeader(http.StatusBadRequest)
+		// 	w.Write([]byte(err.Error()))
+		// 	return
+		// }
 
 		ctbTime, err := time.Parse(time.RFC3339, m.Time)
 		if err != nil {
