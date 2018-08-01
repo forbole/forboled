@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/wire"
@@ -13,10 +14,14 @@ import (
 	"github.com/forbole/forboled/x/contrib"
 )
 
+const (
+	flagScore = "score"
+)
+
 // GetContribCmd returns a query contrib that will display the
 // state of the contrib at a given key
 func GetContribCmd(storeName string, cdc *wire.Codec) *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "query [key]",
 		Short: "Query contrib status",
 		Args:  cobra.ExactArgs(1),
@@ -48,9 +53,14 @@ func GetContribCmd(storeName string, cdc *wire.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Println(string(output))
-
+			if viper.GetBool(flagScore) {
+				fmt.Println(ctb.GetScore())
+			} else {
+				fmt.Println(string(output))
+			}
 			return nil
 		},
 	}
+	cmd.Flags().Bool(flagScore, false, "bool of only showing score")
+	return cmd
 }
