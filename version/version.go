@@ -11,7 +11,7 @@ const Min = "1"
 const Fix = "3"
 
 const VersionF = "0.1.3"
-const VersionC = "0.24.0"
+const VersionC = "0.24.1"
 
 // GitCommit set by build flags
 var GitCommitForbole = ""

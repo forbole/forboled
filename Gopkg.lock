@@ -48,7 +48,7 @@
   revision = "d4cc87b860166d00d6b5b9e0d3b3d71d6088d4d4"
 
 [[projects]]
-  digest = "1:e1a81ab365e2e0f33ded793faa37a4d6f9d54074887af31becd7be42bc01f800"
+  digest = "1:4fbc20c0b966bab84c746157531c29c25016270eaafa75869e62f6c5adbce7fe"
   name = "github.com/cosmos/cosmos-sdk"
   packages = [
     "baseapp",
@@ -98,8 +98,8 @@
     "x/stake/types",
   ]
   pruneopts = "UT"
-  revision = "d5652d96764072c7fc57daa4bf8d79ea1eb61f12"
-  version = "v0.24.0"
+  revision = "2c6ed0fefc499410a7734ac93005f32a99b47b5b"
+  version = "v0.24.1"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -117,7 +117,7 @@
   revision = "95f809107225be108efcf10a3509e4ea6ceef3c4"
 
 [[projects]]
-  digest = "1:cf5684b3e6d1adf398c93da34cc2df5ccc622e880c38f44d77d0242eb3e1ffec"
+  digest = "1:91ffbe03bc6c8fbcc87beac3865c99b67d8d259d623544753be18f954c2e1a83"
   name = "github.com/forbole/cosmos-sdk"
   packages = ["baseapp"]
   pruneopts = "UT"
@@ -226,12 +226,13 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:12247a2e99a060cc692f6680e5272c8adf0b8f572e6bce0d7095e624c958a240"
+  digest = "1:a361611b8c8c75a1091f00027767f7779b29cb37c456a71b8f2604c88057ab40"
   name = "github.com/hashicorp/hcl"
   packages = [
     ".",
     "hcl/ast",
     "hcl/parser",
+    "hcl/printer",
     "hcl/scanner",
     "hcl/strconv",
     "hcl/token",
@@ -598,14 +599,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ead82e3e398388679f3ad77633a087ac31a47a6be59ae20841e1d1b3a3fbbd22"
+  digest = "1:a0e12bc26f317c0e2d497baf767285e1790e526e8dd46553c5a67fcbc8692157"
   name = "golang.org/x/sys"
   packages = [
     "cpu",
     "unix",
   ]
   pruneopts = "UT"
-  revision = "4ea2f632f6e912459fe60b26b1749377f0d889d5"
+  revision = "3b58ed4ad3395d483fc92d5d14123ce2c3581fec"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -639,7 +640,7 @@
   revision = "c66870c02cf823ceb633bcd05be3c7cda29976f4"
 
 [[projects]]
-  digest = "1:2dab32a43451e320e49608ff4542fdfc653c95dcc35d0065ec9c6c3dd540ed74"
+  digest = "1:deea070b93f89c26102a5ad40483d097349faa43125063e33a9dca59c867c66c"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -651,6 +652,7 @@
     "credentials",
     "encoding",
     "encoding/proto",
+    "grpclb/grpc_lb_v1/messages",
     "grpclog",
     "internal",
     "internal/backoff",
