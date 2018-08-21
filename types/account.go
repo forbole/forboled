@@ -46,6 +46,10 @@ type ReputeAccount struct {
 	Role   string `json:"role"`
 }
 
+func ProtoReputeAccount() auth.Account {
+	return &ReputeAccount{}
+}
+
 // nolint
 func (acc ReputeAccount) GetName() string         { return acc.Name }
 func (acc *ReputeAccount) SetName(name string)    { acc.Name = name }

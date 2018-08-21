@@ -25,13 +25,13 @@ func (msg MsgContrib) Type() string { return "contrib" } // TODO: "contrib/contr
 func (msg MsgContrib) ValidateBasic() sdk.Error {
 	// this just makes sure all the contribs are properly formatted
 	if len(msg.Contribs) == 0 {
-		return ErrNoContribs(DefaultCodespace).Trace("")
+		return ErrNoContribs(DefaultCodespace).TraceSDK("")
 	}
 
 	// make sure all contribs are individually valid
 	err := msg.Contribs.ValidateBasic()
 	if err != nil {
-		return err.Trace("")
+		return err.TraceSDK("")
 	}
 
 	return nil
@@ -43,13 +43,14 @@ func (msg MsgContrib) GetSignBytes() []byte {
 	if err != nil {
 		panic(err)
 	}
-	return b
+	// return b
+	return sdk.MustSortJSON(b)
 }
 
 // Implements Msg.
-func (msg MsgContrib) GetSigners() []sdk.Address {
+func (msg MsgContrib) GetSigners() []sdk.AccAddress {
 	m := make(map[string]struct{})
-	addrs := make([]sdk.Address, 0, len(msg.Contribs))
+	addrs := make([]sdk.AccAddress, 0, len(msg.Contribs))
 	for _, ctb := range msg.Contribs {
 		contributor := ctb.GetContributor()
 		key := contributor.String()
