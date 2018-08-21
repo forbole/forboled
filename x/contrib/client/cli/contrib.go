@@ -33,8 +33,8 @@ func GetContribCmd(storeName string, cdc *wire.Codec) *cobra.Command {
 			}
 
 			// perform query
-			ctx := context.NewCoreContextFromViper()
-			res, err := ctx.QueryStore(key, storeName)
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			res, err := cliCtx.QueryStore(key, storeName)
 			// res, err := ctx.Query(storeName)
 			if err != nil {
 				return err

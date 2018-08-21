@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/hex"
+	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -9,8 +10,10 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/utils"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/wire"
+	authctx "github.com/cosmos/cosmos-sdk/x/auth/client/context"
 
 	"github.com/forbole/forboled/types"
 	"github.com/forbole/forboled/x/contrib"
@@ -34,10 +37,18 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 		Use:   "contrib",
 		Short: "Create and sign a contrib tx",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ctx := context.NewCoreContextFromViper().WithAccountStore("repute").WithDecoder(types.GetReputeAccountDecoder(cdc))
+			// ctx := context.NewCoreContextFromViper().WithAccountStore("repute").WithDecoder(types.GetReputeAccountDecoder(cdc))
+
+			// cliCtx := context.NewCLIContext().WithAccountStore("repute").WithAccountDecoder(types.GetReputeAccountDecoder(cdc))
+			txCtx := authctx.NewTxContextFromCLI().WithCodec(cdc)
+			cliCtx := context.NewCLIContext().
+				WithCodec(cdc).
+				WithLogger(os.Stdout).
+				WithAccountStore("repute").
+				WithAccountDecoder(types.GetReputeAccountDecoder(cdc))
 
 			// get the from address
-			from, err := ctx.GetFromAddress()
+			from, err := cliCtx.GetFromAddress()
 			if err != nil {
 				return err
 			}
@@ -111,12 +122,13 @@ func ContribTxCmd(cdc *wire.Codec) *cobra.Command {
 			// 	return nil
 			// }
 
-			err = ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
-			if err != nil {
-				return err
-			}
-			// fmt.Printf("Committed at block %d. Hash: %s\n", res.Height, res.Hash.String())
-			return nil
+			// err = ctx.EnsureSignBuildBroadcast(ctx.FromAddressName, []sdk.Msg{msg}, cdc)
+			// if err != nil {
+			// 	return err
+			// }
+			// // fmt.Printf("Committed at block %d. Hash: %s\n", res.Height, res.Hash.String())
+			// return nil
+			return utils.SendTx(txCtx, cliCtx, []sdk.Msg{msg})
 		},
 	}
 

@@ -18,6 +18,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/ibc"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/stake"
 	bam "github.com/forbole/cosmos-sdk/baseapp"
@@ -51,6 +52,8 @@ type ForboleApp struct {
 	keyGov           *sdk.KVStoreKey
 	keyRepute        *sdk.KVStoreKey
 	keyFeeCollection *sdk.KVStoreKey
+	keyParams        *sdk.KVStoreKey
+	tkeyParams       *sdk.TransientStoreKey
 
 	// Manage getting and setting accounts
 	accountMapper       auth.AccountMapper
@@ -62,6 +65,7 @@ type ForboleApp struct {
 	slashingKeeper      slashing.Keeper
 	govKeeper           gov.Keeper
 	contribKeeper       contrib.Keeper
+	paramsKeeper        params.Keeper
 }
 
 func NewForboleApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOptions ...func(*bam.BaseApp)) *ForboleApp {
@@ -69,7 +73,7 @@ func NewForboleApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOp
 	// Create app-level codec for txs and accounts.
 	var cdc = MakeCodec()
 
-	bApp := bam.NewBaseApp(appName, cdc, logger, db, baseAppOptions...)
+	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 
 	var app = &ForboleApp{
@@ -84,6 +88,8 @@ func NewForboleApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOp
 		keyGov:           sdk.NewKVStoreKey("gov"),
 		keyFeeCollection: sdk.NewKVStoreKey("fee"),
 		keyRepute:        sdk.NewKVStoreKey("repute"),
+		keyParams:        sdk.NewKVStoreKey("params"),
+		tkeyParams:       sdk.NewTransientStoreKey("transient_params"),
 	}
 
 	// Define the accountMapper.
@@ -101,11 +107,12 @@ func NewForboleApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOp
 	// Add handlers.
 	app.coinKeeper = bank.NewKeeper(app.accountMapper)
 	app.ibcMapper = ibc.NewMapper(app.cdc, app.keyIBC, app.RegisterCodespace(ibc.DefaultCodespace))
+	app.paramsKeeper = params.NewKeeper(app.cdc, app.keyParams)
 	app.stakeKeeper = stake.NewKeeper(app.cdc, app.keyStake, app.coinKeeper, app.RegisterCodespace(stake.DefaultCodespace))
-	app.slashingKeeper = slashing.NewKeeper(app.cdc, app.keySlashing, app.stakeKeeper, app.RegisterCodespace(slashing.DefaultCodespace))
-	app.govKeeper = gov.NewKeeper(app.cdc, app.keyGov, app.coinKeeper, app.stakeKeeper, app.RegisterCodespace(gov.DefaultCodespace))
+	app.govKeeper = gov.NewKeeper(app.cdc, app.keyGov, app.paramsKeeper.Setter(), app.coinKeeper, app.stakeKeeper, app.RegisterCodespace(gov.DefaultCodespace))
 	app.feeCollectionKeeper = auth.NewFeeCollectionKeeper(app.cdc, app.keyFeeCollection)
 	app.contribKeeper = contrib.NewKeeper(app.cdc, app.reputeAccountMapper, app.keyContrib)
+	app.slashingKeeper = slashing.NewKeeper(app.cdc, app.keySlashing, app.stakeKeeper, app.paramsKeeper.Getter(), app.RegisterCodespace(slashing.DefaultCodespace))
 	app.Router().
 		// AddRoute("auth", auth.NewHandler(app.accountMapper)).
 		AddRoute("bank", bank.NewHandler(app.coinKeeper)).
@@ -122,13 +129,8 @@ func NewForboleApp(logger log.Logger, db dbm.DB, traceStore io.Writer, baseAppOp
 	// app.SetAnteHandler(auth.NewAnteHandler(app.accountMapper, app.feeCollectionKeeper))
 	// app.SetAnteHandler(auth.NewAnteHandler(app.reputeAccountMapper, app.feeCollectionKeeper))
 	app.SetAnteHandlers(auth.NewAnteHandler(app.accountMapper, app.feeCollectionKeeper), auth.NewAnteHandler(app.reputeAccountMapper, app.feeCollectionKeeper))
-	app.MountStoresIAVL(app.keyMain, app.keyAccount, app.keyIBC, app.keyStake, app.keySlashing, app.keyGov, app.keyFeeCollection, app.keyContrib, app.keyRepute)
-
-	// set AnteHandler
-	// var ahs [2]sdk.AnteHandler
-	// ahs[0] = auth.NewAnteHandler(app.accountMapper, app.feeCollectionKeeper)
-	// ahs[1] = auth.NewAnteHandler(app.reputeAccountMapper, app.feeCollectionKeeper)
-	// app.anteHandler = ahs
+	app.MountStoresIAVL(app.keyMain, app.keyAccount, app.keyIBC, app.keyStake, app.keySlashing, app.keyGov, app.keyFeeCollection, app.keyContrib, app.keyRepute, app.keyParams)
+	app.MountStore(app.tkeyParams, sdk.StoreTypeTransient)
 
 	err := app.LoadLatestVersion(app.keyMain)
 	if err != nil {
@@ -170,9 +172,11 @@ func (app *ForboleApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock)
 
 // application updates every end block
 func (app *ForboleApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	tags := gov.EndBlocker(ctx, app.govKeeper)
 	validatorUpdates := stake.EndBlocker(ctx, app.stakeKeeper)
 
-	tags, _ := gov.EndBlocker(ctx, app.govKeeper)
+	// Add these new validators to the addr -> pubkey map.
+	app.slashingKeeper.AddValidators(ctx, validatorUpdates)
 
 	return abci.ResponseEndBlock{
 		ValidatorUpdates: validatorUpdates,
@@ -206,15 +210,20 @@ func (app *ForboleApp) initChainer(ctx sdk.Context, req abci.RequestInitChain) a
 	}
 
 	// load the initial stake information
-	err = stake.InitGenesis(ctx, app.stakeKeeper, genesisState.StakeData)
+	validators, err := stake.InitGenesis(ctx, app.stakeKeeper, genesisState.StakeData)
 	if err != nil {
 		panic(err) // TODO https://github.com/cosmos/cosmos-sdk/issues/468
 		// return sdk.ErrGenesisParse("").TraceCause(err, "")
 	}
 
+	// load the address to pubkey map
+	slashing.InitGenesis(ctx, app.slashingKeeper, genesisState.StakeData)
+
 	gov.InitGenesis(ctx, app.govKeeper, gov.DefaultGenesisState())
 
-	return abci.ResponseInitChain{}
+	return abci.ResponseInitChain{
+		Validators: validators,
+	}
 }
 
 // // Custom logic for state export

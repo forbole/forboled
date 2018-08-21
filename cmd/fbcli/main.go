@@ -96,6 +96,10 @@ func main() {
 			stakecmd.GetCmdQueryValidators("stake", cdc),
 			stakecmd.GetCmdQueryDelegation("stake", cdc),
 			stakecmd.GetCmdQueryDelegations("stake", cdc),
+			stakecmd.GetCmdQueryUnbondingDelegation("stake", cdc),
+			stakecmd.GetCmdQueryUnbondingDelegations("stake", cdc),
+			stakecmd.GetCmdQueryRedelegation("stake", cdc),
+			stakecmd.GetCmdQueryRedelegations("stake", cdc),
 			slashingcmd.GetCmdQuerySigningInfo("slashing", cdc),
 		)...)
 	stakeCmd.AddCommand(
@@ -121,6 +125,7 @@ func main() {
 			govcmd.GetCmdQueryProposal("gov", cdc),
 			govcmd.GetCmdQueryVote("gov", cdc),
 			govcmd.GetCmdQueryVotes("gov", cdc),
+			govcmd.GetCmdQueryProposals("gov", cdc),
 		)...)
 	govCmd.AddCommand(
 		client.PostCommands(

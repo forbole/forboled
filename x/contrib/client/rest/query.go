@@ -18,23 +18,23 @@ import (
 	// "github.com/forbole/forboled/x/contrib/client"
 )
 
-func registerQueryRoutes(ctx context.CoreContext, r *mux.Router, cdc *wire.Codec) {
+func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router, cdc *wire.Codec) {
 	r.HandleFunc(
 		"/contrib/{key}",
-		contribHandlerFn(ctx, "contrib", cdc),
+		contribHandlerFn(cliCtx, "contrib", cdc),
 	).Methods("GET")
 	r.HandleFunc(
 		"/reputeaccount/{address}",
-		reputeAccountHandlerFn(ctx, "repute", authcmd.GetAccountDecoder(cdc), cdc),
+		reputeAccountHandlerFn(cliCtx, "repute", authcmd.GetAccountDecoder(cdc), cdc),
 	).Methods("GET")
 	r.HandleFunc(
 		"/contrib/{key}/score",
-		contribScoreHandlerFn(ctx, "contrib", cdc),
+		contribScoreHandlerFn(cliCtx, "contrib", cdc),
 	).Methods("GET")
 }
 
 // http request handler to query delegator bonding status
-func contribHandlerFn(ctx context.CoreContext, storeName string, cdc *wire.Codec) http.HandlerFunc {
+func contribHandlerFn(cliCtx context.CLIContext, storeName string, cdc *wire.Codec) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// read parameters
@@ -59,7 +59,7 @@ func contribHandlerFn(ctx context.CoreContext, storeName string, cdc *wire.Codec
 			return
 		}
 
-		res, err := ctx.QueryStore(key, storeName)
+		res, err := cliCtx.QueryStore(key, storeName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf("Couldn't query contribution. Error: %s", err.Error())))
@@ -91,7 +91,7 @@ func contribHandlerFn(ctx context.CoreContext, storeName string, cdc *wire.Codec
 	}
 }
 
-func reputeAccountHandlerFn(ctx context.CoreContext, storeName string, decoder auth.AccountDecoder, cdc *wire.Codec) http.HandlerFunc {
+func reputeAccountHandlerFn(cliCtx context.CLIContext, storeName string, decoder auth.AccountDecoder, cdc *wire.Codec) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		addr := vars["address"]
@@ -103,8 +103,7 @@ func reputeAccountHandlerFn(ctx context.CoreContext, storeName string, decoder a
 			return
 		}
 
-		res, err := ctx.QueryStore(auth.AddressStoreKey(key), storeName)
-		// res, err := ctx.Query(storeName)
+		res, err := cliCtx.QueryStore(auth.AddressStoreKey(key), storeName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf("Could't query account. Error: %s", err.Error())))
@@ -137,7 +136,7 @@ func reputeAccountHandlerFn(ctx context.CoreContext, storeName string, decoder a
 	}
 }
 
-func contribScoreHandlerFn(ctx context.CoreContext, storeName string, cdc *wire.Codec) http.HandlerFunc {
+func contribScoreHandlerFn(cliCtx context.CLIContext, storeName string, cdc *wire.Codec) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// read parameters
@@ -162,7 +161,7 @@ func contribScoreHandlerFn(ctx context.CoreContext, storeName string, cdc *wire.
 			return
 		}
 
-		res, err := ctx.QueryStore(key, storeName)
+		res, err := cliCtx.QueryStore(key, storeName)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(fmt.Sprintf("Couldn't query contribution. Error: %s", err.Error())))

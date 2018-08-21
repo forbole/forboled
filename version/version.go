@@ -8,10 +8,10 @@ package version
 // version now is 0.1.1
 const Maj = "0"
 const Min = "1"
-const Fix = "2"
+const Fix = "3"
 
-const VersionF = "0.1.2"
-const VersionC = "0.23.1"
+const VersionF = "0.1.3"
+const VersionC = "0.24.0"
 
 // GitCommit set by build flags
 var GitCommitForbole = ""

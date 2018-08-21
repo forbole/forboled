@@ -14,6 +14,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/wire"
+	authctx "github.com/cosmos/cosmos-sdk/x/auth/client/context"
 
 	"github.com/forbole/forboled/x/contrib"
 	"github.com/forbole/forboled/x/contrib/client"
@@ -26,8 +27,8 @@ func init() {
 }
 
 // RegisterRoutes - Central function to define routes that get registered by the main application
-func registerTxRoutes(ctx context.CoreContext, r *mux.Router, cdc *wire.Codec, kb keys.Keybase) {
-	r.HandleFunc("/contrib/{address}/{ctbtype}", ContribRequestHandlerFn(cdc, kb, ctx)).Methods("POST")
+func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router, cdc *wire.Codec, kb keys.Keybase) {
+	r.HandleFunc("/contrib/{address}/{ctbtype}", ContribRequestHandlerFn(cdc, kb, cliCtx)).Methods("POST")
 }
 
 type contribBody struct {
@@ -46,7 +47,7 @@ type contribBody struct {
 }
 
 // ContribRequestHandlerFn - http request handler to send contrib.
-func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreContext) http.HandlerFunc {
+func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// collect data
 		vars := mux.Vars(r)
@@ -142,14 +143,15 @@ func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreC
 			return
 		}
 
-		// add gas to context
-		ctx = ctx.WithGas(m.Gas)
-		// add chain-id to context
-		ctx = ctx.WithChainID(m.ChainID)
-		// sign
-		ctx = ctx.WithAccountNumber(m.AccountNumber)
-		ctx = ctx.WithSequence(m.Sequence)
-		txBytes, err := ctx.SignAndBuild(m.LocalAccountName, m.Password, []sdk.Msg{msg}, cdc)
+		txCtx := authctx.TxContext{
+			Codec:         cdc,
+			ChainID:       m.ChainID,
+			AccountNumber: m.AccountNumber,
+			Sequence:      m.Sequence,
+			Gas:           m.Gas,
+		}
+
+		txBytes, err := txCtx.BuildAndSign(m.LocalAccountName, m.Password, []sdk.Msg{msg})
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte(err.Error()))
@@ -157,7 +159,7 @@ func ContribRequestHandlerFn(cdc *wire.Codec, kb keys.Keybase, ctx context.CoreC
 		}
 
 		// send
-		res, err := ctx.BroadcastTx(txBytes)
+		res, err := cliCtx.BroadcastTx(txBytes)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))

@@ -3,11 +3,9 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
-	"github.com/spf13/pflag"
-	// crypto "github.com/tendermint/go-crypto"
-	"github.com/tendermint/tendermint/crypto"
-	tmtypes "github.com/tendermint/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/server/config"
@@ -16,7 +14,24 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/stake"
 
+	"github.com/spf13/pflag"
+	"github.com/tendermint/tendermint/crypto"
+	tmtypes "github.com/tendermint/tendermint/types"
+
 	"github.com/forbole/forboled/types"
+)
+
+// DefaultKeyPass contains the default key password for genesis transactions
+const DefaultKeyPass = "12345678"
+
+var (
+	flagName       = "name"
+	flagClientHome = "home-client"
+	flagOWK        = "owk"
+
+	// bonded tokens given to genesis validators/accounts
+	freeFermionVal  = int64(100)
+	freeFermionsAcc = int64(50)
 )
 
 // State to Unmarshal
@@ -58,8 +73,8 @@ func (ga *GenesisAccount) ToAccount() (acc *auth.BaseAccount) {
 // GenesisAdmin doesn't need pubkey or sequence
 type GenesisAdmin struct {
 	Address sdk.AccAddress `json:"address"`
+	Role    string         `json:"role"`
 	// Repute  int64       `json:"repute"`
-	Role string `json:"role"`
 }
 
 func NewGenesisAdmin(acc *auth.BaseAccount) GenesisAdmin {
@@ -81,16 +96,6 @@ func (ga *GenesisAdmin) ToReputeAccount() (acc *types.ReputeAccount) {
 		Role: ga.Role,
 	}
 }
-
-var (
-	flagName       = "name"
-	flagClientHome = "home-client"
-	flagOWK        = "owk"
-
-	// bonded tokens given to genesis validators/accounts
-	freeFermionVal  = int64(100)
-	freeFermionsAcc = int64(50)
-)
 
 // get app init parameters for server init command
 func ForboleAppInit() server.AppInit {
@@ -118,35 +123,45 @@ type ForboleGenTx struct {
 }
 
 // Generate a forbole genesis transaction
-func ForboleAppGenTx(cdc *wire.Codec, pk crypto.PubKey, genTxConfig config.GenTx) (
-	appGenTx, cliPrint json.RawMessage, validator tmtypes.GenesisValidator, err error) {
+// GaiaAppGenTx generates a Gaia genesis transaction.
+func ForboleAppGenTx(
+	cdc *wire.Codec, pk crypto.PubKey, genTxConfig config.GenTx,
+) (appGenTx, cliPrint json.RawMessage, validator tmtypes.GenesisValidator, err error) {
 	if genTxConfig.Name == "" {
 		return nil, nil, tmtypes.GenesisValidator{}, errors.New("Must specify --name (validator moniker)")
 	}
 
-	var addr sdk.AccAddress
-	var secret string
-	// clientRoot := viper.GetString(flagClientHome)
-	// overwrite := viper.GetBool(flagOWK)
-	// name := viper.GetString(flagName)
-	// if name == "" {
-	// 	return nil, nil, tmtypes.GenesisValidator{}, errors.New("Must specify --name (validator moniker)")
-	// }
-
-	addr, secret, err = server.GenerateSaveCoinKey(genTxConfig.CliRoot, genTxConfig.Name, "1234567890", genTxConfig.Overwrite)
+	buf := client.BufferStdin()
+	prompt := fmt.Sprintf("Password for account '%s' (default %s):", genTxConfig.Name, DefaultKeyPass)
+	keyPass, err := client.GetPassword(prompt, buf)
+	if err != nil && keyPass != "" {
+		// An error was returned that either failed to read the password from
+		// STDIN or the given password is not empty but failed to meet minimum
+		// length requirements.
+		return appGenTx, cliPrint, validator, err
+	}
+	if keyPass == "" {
+		keyPass = DefaultKeyPass
+	}
+	addr, secret, err := server.GenerateSaveCoinKey(
+		genTxConfig.CliRoot,
+		genTxConfig.Name,
+		keyPass,
+		genTxConfig.Overwrite,
+	)
 	if err != nil {
-		return
+		return appGenTx, cliPrint, validator, err
 	}
 	mm := map[string]string{"secret": secret}
-	var bz []byte
-	bz, err = cdc.MarshalJSON(mm)
+	bz, err := cdc.MarshalJSON(mm)
 	if err != nil {
-		return
+		return appGenTx, cliPrint, validator, err
 	}
 	cliPrint = json.RawMessage(bz)
 
 	appGenTx, _, validator, err = ForboleAppGenTxNF(cdc, pk, addr, genTxConfig.Name)
-	return
+
+	return appGenTx, cliPrint, validator, err
 }
 
 func ForboleAppGenTxNF(cdc *wire.Codec, pk crypto.PubKey, addr sdk.AccAddress, name string) (
